@@ -1,0 +1,44 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model ChangeLog {
+  id          String   @id @default(cuid())
+  timestamp   DateTime @default(now())
+  action      String   // "shopify" | "wordpress" | "lighthouse"
+  operation   String   // "scan" | "apply" | "rollback"
+  description String
+  beforeState Json?    // Store the state before changes
+  afterState  Json?    // Store the state after changes
+  status      String   // "pending" | "success" | "failed"
+  error       String?  // Error message if failed
+  userId      String?  // For future user management
+  metadata    Json?    // Additional metadata
+}
+
+model StoreConnection {
+  id            String   @id @default(cuid())
+  storeType     String   // "shopify" | "wordpress"
+  storeUrl      String
+  accessToken   String?  // For Shopify
+  username      String?  // For WordPress
+  appPassword   String?  // For WordPress
+  isActive      Boolean  @default(true)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}
+
+model ChatSession {
+  id        String   @id @default(cuid())
+  messages  Json     // Array of chat messages
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
