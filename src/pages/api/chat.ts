@@ -59,6 +59,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           const products = await shopify.getProducts(10) // Get first 10 products
           const themes = await shopify.getThemes()
           
+          // Store products globally for detailed responses
+          global.storeProducts = products
+          
           storeInfo = `
 Current Store Data:
 - Store URL: ${storeUrl}
@@ -88,8 +91,46 @@ ${products.slice(0, 5).map(p => `- ${p.title} (${p.variants.length} variants)`).
     let aiResponse = ''
     
     if (storeInfo) {
-      // User has store data available
-      if (message.toLowerCase().includes('product') || message.toLowerCase().includes('show')) {
+      // Check if user is asking about a specific product
+      const products = global.storeProducts || []
+      const productQuery = message.toLowerCase()
+      
+      // Find if user is asking about a specific product
+      const specificProduct = products.find(product => 
+        product.title.toLowerCase().includes(productQuery.replace(/[^a-zA-Z0-9]/g, ' ').trim()) ||
+        productQuery.includes(product.title.toLowerCase())
+      )
+      
+      if (specificProduct) {
+        // Provide detailed product information
+        const variants = specificProduct.variants || []
+        const firstVariant = variants[0] || {}
+        
+        aiResponse = `Here's detailed information about **${specificProduct.title}**:
+
+**Product Details:**
+- **Title:** ${specificProduct.title}
+- **Product Type:** ${specificProduct.product_type || 'Not specified'}
+- **Vendor:** ${specificProduct.vendor || 'Not specified'}
+- **Status:** ${specificProduct.status || 'Active'}
+- **Created:** ${new Date(specificProduct.created_at).toLocaleDateString()}
+
+**Description:**
+${specificProduct.body_html ? specificProduct.body_html.replace(/<[^>]*>/g, '') : 'No description available'}
+
+**Variants:** ${variants.length} variant${variants.length !== 1 ? 's' : ''}
+${variants.map((variant, index) => `
+${index + 1}. **${variant.title}**
+   - Price: $${variant.price}
+   - SKU: ${variant.sku || 'Not specified'}
+   - Inventory: ${variant.inventory_quantity || 0} available
+   - Weight: ${variant.weight || 0} ${variant.weight_unit || 'g'}`).join('\n')}
+
+**Tags:** ${specificProduct.tags ? specificProduct.tags.split(',').map(tag => tag.trim()).join(', ') : 'No tags'}
+
+Would you like me to help you optimize this product, update its information, or make any other changes?`
+      } else if (message.toLowerCase().includes('product') || message.toLowerCase().includes('show')) {
+        // General product overview
         aiResponse = `Great! I can see your store data. Here's what I found:
 
 ${storeInfo}
