@@ -15,77 +15,7 @@ export default function Home() {
   const { currentPreview, connections } = useAppStore()
   const { user, signOut, loading } = useAuth()
 
-  // Autoplay slider functionality
-  useEffect(() => {
-    let interval: NodeJS.Timeout;
-    
-    if (!user) { // Only for landing page
-      const initSlider = () => {
-        const slider = document.getElementById('feature-slider');
-        const track = document.getElementById('slider-track');
-        
-        if (slider && track) {
-          const cards = track.children;
-          const cardWidth = 320; // w-80 = 320px
-          const gap = 24; // gap-6 = 24px
-          const totalWidth = cardWidth + gap;
-          let currentIndex = 0;
-          
-          // Function to update card styles based on current index
-          const updateCardStyles = (index: number) => {
-            Array.from(cards).forEach((card, i) => {
-              const cardElement = card as HTMLElement;
-              if (i === index) {
-                // Active card - highlighted border, no blur
-                cardElement.style.borderColor = '#4B5563'; // gray-600
-                cardElement.style.filter = 'blur(0px)';
-                cardElement.style.transform = 'scale(1)';
-              } else if (i === index - 1 || i === index + 1 || 
-                        (index === 0 && i === cards.length - 1) || 
-                        (index === cards.length - 1 && i === 0)) {
-                // Adjacent cards - light border, slight blur
-                cardElement.style.borderColor = '#E5E7EB'; // gray-200
-                cardElement.style.filter = 'blur(2px)';
-                cardElement.style.transform = 'scale(0.95)';
-              } else {
-                // Other cards - light border, more blur
-                cardElement.style.borderColor = '#E5E7EB'; // gray-200
-                cardElement.style.filter = 'blur(4px)';
-                cardElement.style.transform = 'scale(0.9)';
-              }
-            });
-          };
-          
-          // Center the slider initially
-          const centerOffset = (slider.offsetWidth - cardWidth) / 2;
-          track.style.transform = `translateX(${centerOffset}px)`;
-          
-          // Set initial styles
-          updateCardStyles(currentIndex);
-          
-          const nextSlide = () => {
-            currentIndex = (currentIndex + 1) % cards.length;
-            const translateX = centerOffset - (currentIndex * totalWidth);
-            track.style.transform = `translateX(${translateX}px)`;
-            updateCardStyles(currentIndex);
-          };
-          
-          // Start autoplay
-          interval = setInterval(nextSlide, 3000);
-        }
-      };
-      
-      // Initialize after a short delay to ensure DOM is ready
-      const timer = setTimeout(initSlider, 500);
-      
-      return () => {
-        clearTimeout(timer);
-        if (interval) {
-          clearInterval(interval);
-        }
-      };
-    }
-  }, [user]);
+
 
   // Show loading state
   if (loading) {
@@ -154,14 +84,12 @@ export default function Home() {
             </p>
           </div>
 
-                    {/* Feature Cards Slider */}
+                    {/* Feature Cards Grid */}
           <section className="w-full pb-16">
-            <div className="relative">
-              {/* Slider Container */}
-              <div className="flex overflow-hidden gap-6 snap-x snap-mandatory transition-transform duration-1000 ease-in-out" id="feature-slider">
-                <div className="flex gap-6 transition-transform duration-1000 ease-in-out" id="slider-track">
+            <div className="max-w-7xl mx-auto px-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {/* Smart Analysis */}
-                <div className="flex-shrink-0 w-80 bg-white border border-gray-200 rounded-lg p-8 snap-start slider-card" data-index="0">
+                <div className="bg-white border border-gray-200 rounded-lg p-8">
                   <div className="text-center mb-6">
                     <svg className="w-12 h-12 text-gray-700 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
@@ -171,7 +99,7 @@ export default function Home() {
                 </div>
 
                 {/* Auto Optimization */}
-                <div className="flex-shrink-0 w-80 bg-white border border-gray-200 rounded-lg p-8 snap-start slider-card" data-index="1">
+                <div className="bg-white border border-gray-200 rounded-lg p-8">
                   <div className="text-center mb-6">
                     <svg className="w-12 h-12 text-gray-700 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
@@ -181,7 +109,7 @@ export default function Home() {
                 </div>
 
                 {/* AI Chat Assistant */}
-                <div className="flex-shrink-0 w-80 bg-white border border-gray-200 rounded-lg p-8 snap-start slider-card" data-index="2">
+                <div className="bg-white border border-gray-200 rounded-lg p-8">
                   <div className="text-center mb-6">
                     <svg className="w-12 h-12 text-gray-700 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
@@ -191,7 +119,7 @@ export default function Home() {
                 </div>
 
                 {/* Store Integration */}
-                <div className="flex-shrink-0 w-80 bg-white border border-gray-200 rounded-lg p-8 snap-start slider-card" data-index="3">
+                <div className="bg-white border border-gray-200 rounded-lg p-8">
                   <div className="text-center mb-6">
                     <svg className="w-12 h-12 text-gray-700 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
@@ -201,7 +129,7 @@ export default function Home() {
                 </div>
 
                 {/* Performance Tracking */}
-                <div className="flex-shrink-0 w-80 bg-white border border-gray-200 rounded-lg p-8 snap-start slider-card" data-index="4">
+                <div className="bg-white border border-gray-200 rounded-lg p-8">
                   <div className="text-center mb-6">
                     <svg className="w-12 h-12 text-gray-700 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
@@ -209,37 +137,6 @@ export default function Home() {
                   </div>
                   <h3 className="font-urbanist font-light text-gray-800 text-lg text-center">Performance Tracking</h3>
                 </div>
-
-                {/* Duplicate cards for infinite loop effect */}
-                {/* Smart Analysis - Duplicate */}
-                <div className="flex-shrink-0 w-80 bg-white border border-gray-200 rounded-lg p-8 snap-start slider-card" data-index="5">
-                  <div className="text-center mb-6">
-                    <svg className="w-12 h-12 text-gray-700 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-                    </svg>
-                  </div>
-                  <h3 className="font-urbanist font-light text-gray-800 text-lg text-center">Smart Analysis</h3>
-                </div>
-
-                {/* Auto Optimization - Duplicate */}
-                <div className="flex-shrink-0 w-80 bg-white border border-gray-200 rounded-lg p-8 snap-start slider-card" data-index="6">
-                  <div className="text-center mb-6">
-                    <svg className="w-12 h-12 text-gray-700 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
-                    </svg>
-                  </div>
-                  <h3 className="font-urbanist font-light text-gray-800 text-lg text-center">Auto Optimization</h3>
-                </div>
-                </div>
-              </div>
-
-              {/* Scroll Indicators */}
-              <div className="flex justify-center mt-8 space-x-2">
-                <div className="w-2 h-2 bg-gray-300 rounded-full"></div>
-                <div className="w-2 h-2 bg-gray-300 rounded-full"></div>
-                <div className="w-2 h-2 bg-purple-600 rounded-full"></div>
-                <div className="w-2 h-2 bg-gray-300 rounded-full"></div>
-                <div className="w-2 h-2 bg-gray-300 rounded-full"></div>
               </div>
             </div>
           </section>
