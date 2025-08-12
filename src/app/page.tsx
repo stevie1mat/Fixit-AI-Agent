@@ -4,14 +4,55 @@ import { useState } from 'react'
 import { ChatBox } from '@/components/ChatBox'
 import { ChangePreview } from '@/components/ChangePreview'
 import { Sidebar } from '@/components/Sidebar'
+import { ProtectedRoute } from '@/components/ProtectedRoute'
 import { useAppStore } from '@/lib/store'
+import { useAuth } from '@/contexts/AuthContext'
 import { Button } from '@/components/ui/Button'
-import { Settings, History, Zap } from 'lucide-react'
+import { Settings, History, Zap, LogOut, User } from 'lucide-react'
 
 export default function Home() {
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const { currentPreview, connections } = useAppStore()
+  const { user, signOut, loading } = useAuth()
 
+  // Show loading state
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4" />
+          <p className="text-muted-foreground">Loading...</p>
+        </div>
+      </div>
+    )
+  }
+
+  // Show landing page for unauthenticated users
+  if (!user) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center p-4">
+        <div className="w-full max-w-md text-center space-y-8">
+          <div>
+            <h1 className="text-4xl font-bold mb-4">Fix It AI</h1>
+            <p className="text-xl text-muted-foreground mb-8">
+              AI-powered assistant for fixing Shopify and WordPress e-commerce sites
+            </p>
+          </div>
+          
+          <div className="space-y-4">
+            <Button asChild className="w-full">
+              <a href="/login">Get Started</a>
+            </Button>
+            <p className="text-sm text-muted-foreground">
+              Sign in to start managing your e-commerce stores with AI
+            </p>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  // Show main app for authenticated users
   return (
     <div className="flex h-screen bg-background">
       {/* Sidebar */}
@@ -40,6 +81,10 @@ export default function Home() {
             </div>
             
             <div className="flex items-center space-x-2">
+              <div className="flex items-center space-x-2 text-sm text-muted-foreground">
+                <User className="h-4 w-4" />
+                <span>{user?.email}</span>
+              </div>
               <Button variant="ghost" size="sm" asChild>
                 <a href="/settings">
                   <Settings className="h-4 w-4 mr-2" />
@@ -51,6 +96,10 @@ export default function Home() {
                   <History className="h-4 w-4 mr-2" />
                   Logs
                 </a>
+              </Button>
+              <Button variant="ghost" size="sm" onClick={signOut}>
+                <LogOut className="h-4 w-4 mr-2" />
+                Sign Out
               </Button>
             </div>
           </div>

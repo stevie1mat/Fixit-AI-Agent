@@ -4,6 +4,8 @@ import { useState } from 'react'
 import { Button } from '@/components/ui/Button'
 import { Store, Settings, ArrowLeft, Check, X } from 'lucide-react'
 import { useAppStore } from '@/lib/store'
+import { useAuth } from '@/contexts/AuthContext'
+import { ProtectedRoute } from '@/components/ProtectedRoute'
 import { validateShopifyUrl, validateWordPressUrl } from '@/lib/utils'
 
 export default function SettingsPage() {
@@ -11,6 +13,7 @@ export default function SettingsPage() {
   const [isTesting, setIsTesting] = useState(false)
   const [testResult, setTestResult] = useState<'success' | 'error' | null>(null)
   const { addConnection } = useAppStore()
+  const { user } = useAuth()
 
   // Shopify form state
   const [shopifyForm, setShopifyForm] = useState({
@@ -102,9 +105,10 @@ export default function SettingsPage() {
   }
 
   return (
-    <div className="min-h-screen bg-background">
-      {/* Header */}
-      <header className="border-b bg-card">
+    <ProtectedRoute>
+      <div className="min-h-screen bg-background">
+        {/* Header */}
+        <header className="border-b bg-card">
         <div className="flex items-center justify-between p-4">
           <div className="flex items-center space-x-4">
             <Button variant="ghost" size="sm" asChild>
@@ -339,6 +343,6 @@ export default function SettingsPage() {
           </div>
         )}
       </div>
-    </div>
+    </ProtectedRoute>
   )
 }
