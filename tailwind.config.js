@@ -12,6 +12,7 @@ module.exports = {
         sans: ['var(--font-inter)', 'system-ui', 'sans-serif'],
         display: ['var(--font-poppins)', 'system-ui', 'sans-serif'],
         mono: ['var(--font-jetbrains-mono)', 'monospace'],
+        urbanist: ['var(--font-urbanist)', 'system-ui', 'sans-serif'],
       },
       colors: {
         border: "hsl(var(--border))",

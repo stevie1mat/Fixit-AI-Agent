@@ -1,5 +1,5 @@
 import type { Metadata } from 'next'
-import { Inter, Poppins, JetBrains_Mono } from 'next/font/google'
+import { Inter, Poppins, JetBrains_Mono, Urbanist } from 'next/font/google'
 import './globals.css'
 import { AuthProvider } from '@/contexts/AuthContext'
 
@@ -22,6 +22,13 @@ const jetbrainsMono = JetBrains_Mono({
   display: 'swap',
 })
 
+const urbanist = Urbanist({ 
+  subsets: ['latin'],
+  weight: ['300', '400', '500', '600', '700'],
+  variable: '--font-urbanist',
+  display: 'swap',
+})
+
 export const metadata: Metadata = {
   title: 'Fix It AI - E-commerce Assistant',
   description: 'AI-powered assistant for fixing Shopify and WordPress e-commerce sites',
@@ -34,7 +41,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body className={`${inter.variable} ${poppins.variable} ${jetbrainsMono.variable} font-sans`}>
+      <body className={`${inter.variable} ${poppins.variable} ${jetbrainsMono.variable} ${urbanist.variable} font-sans`}>
         <AuthProvider>
           <div className="min-h-screen bg-background">
             {children}
