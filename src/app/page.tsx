@@ -109,7 +109,7 @@ export default function Home() {
                   {/* First row - 2 cards */}
                   <div className="flex gap-12">
                     {/* Smart Analysis */}
-                    <div className="bg-white rounded-lg p-6 w-64">
+                    <div className="bg-white rounded-lg p-6 w-64 -mb-16">
                       <div className="text-center mb-4">
                         <svg className="w-12 h-12 text-gray-700 mx-auto mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
@@ -139,7 +139,7 @@ export default function Home() {
                     <h3 className="font-urbanist font-light text-gray-800 text-base text-center">AI Chat Assistant</h3>
                   </div>
 
-                  {/* Third row - 2 cards */}
+                                    {/* Third row - 2 cards */}
                   <div className="flex gap-12">
                     {/* Store Integration */}
                     <div className="bg-white rounded-lg p-6 w-64">
@@ -152,7 +152,7 @@ export default function Home() {
                     </div>
 
                     {/* Performance Tracking */}
-                    <div className="bg-white rounded-lg p-6 w-64">
+                    <div className="bg-white rounded-lg p-6 w-64 -mb-16">
                       <div className="text-center mb-4">
                         <svg className="w-12 h-12 text-gray-700 mx-auto mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
@@ -160,7 +160,7 @@ export default function Home() {
                       </div>
                       <h3 className="font-urbanist font-light text-gray-800 text-base text-center">Performance Tracking</h3>
                     </div>
-                                    </div>
+                  </div>
                 </div>
             </div>
           </section>
