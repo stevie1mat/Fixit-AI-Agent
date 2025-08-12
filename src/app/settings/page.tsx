@@ -173,7 +173,7 @@ export default function SettingsPage() {
           </div>
         </header>
 
-      <div className="max-w-4xl mx-auto p-6">
+        <div className="max-w-4xl mx-auto p-6">
         {/* Tabs */}
         <div className="flex space-x-1 bg-muted p-1 rounded-lg mb-8">
           <button
@@ -388,6 +388,7 @@ export default function SettingsPage() {
             )}
           </div>
         )}
+        </div>
       </div>
     </ProtectedRoute>
   )
