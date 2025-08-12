@@ -84,7 +84,7 @@ export default function Home() {
         </main>
 
         {/* Feature Cards */}
-        <section className="max-w-7xl mx-auto px-6 pb-16 -mt-4">
+        <section className="max-w-7xl mx-auto px-6 pb-16 -mt-8">
           <div className="grid grid-cols-1 md:grid-cols-5 gap-6">
             {/* Smart Analysis */}
             <div className="bg-white border border-gray-200 rounded-xl p-6 hover:shadow-lg transition-shadow">
