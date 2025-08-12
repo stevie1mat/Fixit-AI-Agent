@@ -77,7 +77,7 @@ export default function Home() {
             </h1>
             
             {/* Description */}
-            <p className="text-xl font-urbanist font-light text-gray-600 mb-12 max-w-2xl mx-auto leading-relaxed">
+            <p className="text-xl font-urbanist font-light text-gray-600 mb-8 max-w-2xl mx-auto leading-relaxed">
               Transform your Shopify and WordPress stores with intelligent AI that analyzes, optimizes, and drives real results.
             </p>
           </div>
