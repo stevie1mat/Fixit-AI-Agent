@@ -45,8 +45,8 @@ export default function LoginPage() {
       <div className="w-full max-w-md space-y-8">
         {/* Header */}
         <div className="text-center">
-          <h1 className="text-3xl font-bold">Fix It AI</h1>
-          <p className="text-muted-foreground mt-2">
+          <h1 className="text-3xl font-display font-bold">Fix It AI</h1>
+          <p className="text-muted-foreground mt-2 font-medium">
             {isSignUp ? 'Create your account' : 'Sign in to your account'}
           </p>
         </div>
@@ -54,9 +54,9 @@ export default function LoginPage() {
         {/* Form */}
         <form onSubmit={handleSubmit} className="space-y-6">
           <div>
-            <label htmlFor="email" className="block text-sm font-medium mb-2">
-              Email address
-            </label>
+                          <label htmlFor="email" className="block text-sm font-display font-medium mb-2">
+                Email address
+              </label>
             <div className="relative">
               <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <input
@@ -72,9 +72,9 @@ export default function LoginPage() {
           </div>
 
           <div>
-            <label htmlFor="password" className="block text-sm font-medium mb-2">
-              Password
-            </label>
+                          <label htmlFor="password" className="block text-sm font-display font-medium mb-2">
+                Password
+              </label>
             <div className="relative">
               <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <input

@@ -27,135 +27,123 @@ export default function Home() {
     )
   }
 
-  // Show landing page for unauthenticated users
+    // Show landing page for unauthenticated users
   if (!user) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 relative overflow-hidden">
-        {/* Background pattern */}
-        <div className="absolute inset-0 opacity-30">
-          <div className="absolute inset-0" style={{
-            backgroundImage: `radial-gradient(circle, #cbd5e1 1px, transparent 1px)`,
-            backgroundSize: '20px 20px'
-          }}></div>
-        </div>
-
+      <div className="min-h-screen bg-white">
         {/* Header */}
-        <header className="relative z-10 flex items-center justify-between p-6 max-w-7xl mx-auto">
+        <header className="flex items-center justify-between p-6 max-w-7xl mx-auto">
           <div className="flex items-center space-x-2">
-            <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
-              <div className="w-4 h-4 bg-white rounded-sm"></div>
-            </div>
-            <span className="text-xl font-bold text-gray-900">Fix It AI</span>
+            <span className="text-xl font-display font-bold text-gray-900">Fix It AI</span>
           </div>
           
           <nav className="hidden md:flex items-center space-x-8">
+            <a href="#product" className="text-gray-600 hover:text-gray-900">Product</a>
             <a href="#features" className="text-gray-600 hover:text-gray-900">Features</a>
-            <a href="#solutions" className="text-gray-600 hover:text-gray-900">Solutions</a>
-            <a href="#resources" className="text-gray-600 hover:text-gray-900">Resources</a>
             <a href="#pricing" className="text-gray-600 hover:text-gray-900">Pricing</a>
+            <a href="#resources" className="text-gray-600 hover:text-gray-900">Resources</a>
           </nav>
           
           <div className="flex items-center space-x-4">
-            <a href="/login" className="text-gray-600 hover:text-gray-900">Sign in</a>
+            <Button variant="outline" asChild>
+              <a href="/login">Sign in</a>
+            </Button>
             <Button asChild>
-              <a href="/login">Get demo</a>
+              <a href="/login">Request a Demo</a>
             </Button>
           </div>
         </header>
 
         {/* Main Content */}
-        <main className="relative z-10 flex flex-col items-center justify-center min-h-[80vh] px-6">
-          {/* App Icon */}
-          <div className="w-24 h-24 bg-white rounded-2xl shadow-lg flex items-center justify-center mb-8">
-            <div className="grid grid-cols-2 gap-2 w-16 h-16">
-              <div className="bg-blue-500 rounded-lg"></div>
-              <div className="bg-gray-800 rounded-lg"></div>
-              <div className="bg-gray-800 rounded-lg"></div>
-              <div className="bg-gray-800 rounded-lg"></div>
+        <main className="flex flex-col items-center justify-center min-h-[80vh] px-6 relative">
+          {/* Connected Feature Elements */}
+          <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+            {/* Central Icon */}
+            <div className="w-20 h-20 bg-purple-500 rounded-2xl flex items-center justify-center shadow-lg">
+              <svg className="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+              </svg>
             </div>
+
+            {/* Left Side Elements */}
+            <div className="absolute left-20 top-1/2 transform -translate-y-1/2 space-y-8">
+              {/* Top-left: Lightbulb */}
+              <div className="w-12 h-12 bg-yellow-400 rounded-xl flex items-center justify-center shadow-lg">
+                <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
+                </svg>
+              </div>
+              
+              {/* Middle-left: Profile */}
+              <div className="w-12 h-12 bg-gradient-to-br from-blue-400 to-purple-500 rounded-full shadow-lg flex items-center justify-center">
+                <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                </svg>
+              </div>
+              
+              {/* Bottom-left: Balloons */}
+              <div className="w-12 h-12 bg-blue-400 rounded-xl flex items-center justify-center shadow-lg">
+                <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 4V2a1 1 0 011-1h8a1 1 0 011 1v2m-9 0h10m-10 0a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V6a2 2 0 00-2-2" />
+                </svg>
+              </div>
+            </div>
+
+            {/* Right Side Elements */}
+            <div className="absolute right-20 top-1/2 transform -translate-y-1/2 space-y-8">
+              {/* Top-right: Lightning */}
+              <div className="w-12 h-12 bg-orange-500 rounded-xl flex items-center justify-center shadow-lg">
+                <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                </svg>
+              </div>
+              
+              {/* Middle-right: Profile */}
+              <div className="w-12 h-12 bg-gradient-to-br from-pink-400 to-red-500 rounded-full shadow-lg flex items-center justify-center">
+                <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                </svg>
+              </div>
+              
+              {/* Bottom-right: Eyes */}
+              <div className="w-12 h-12 bg-white border-2 border-gray-200 rounded-xl flex items-center justify-center shadow-lg">
+                <div className="flex space-x-1">
+                  <div className="w-2 h-2 bg-gray-800 rounded-full"></div>
+                  <div className="w-2 h-2 bg-gray-800 rounded-full"></div>
+                </div>
+              </div>
+            </div>
+
+            {/* Connection Lines */}
+            <svg className="absolute inset-0 w-full h-full" style={{ zIndex: -1 }}>
+              <defs>
+                <pattern id="dots" x="0" y="0" width="20" height="20" patternUnits="userSpaceOnUse">
+                  <circle cx="10" cy="10" r="1" fill="#e5e7eb" />
+                </pattern>
+              </defs>
+              <rect width="100%" height="100%" fill="url(#dots)" />
+              
+              {/* Connection lines */}
+              <line x1="25%" y1="50%" x2="75%" y2="50%" stroke="#e5e7eb" strokeWidth="1" strokeDasharray="5,5" />
+              <line x1="50%" y1="25%" x2="50%" y2="75%" stroke="#e5e7eb" strokeWidth="1" strokeDasharray="5,5" />
+              <line x1="25%" y1="25%" x2="75%" y2="75%" stroke="#e5e7eb" strokeWidth="1" strokeDasharray="5,5" />
+              <line x1="75%" y1="25%" x2="25%" y2="75%" stroke="#e5e7eb" strokeWidth="1" strokeDasharray="5,5" />
+            </svg>
           </div>
 
           {/* Headlines */}
-          <h1 className="text-5xl md:text-6xl font-bold text-gray-900 text-center mb-4">
-            Fix, optimize, and grow
-          </h1>
-          <p className="text-2xl md:text-3xl text-gray-600 text-center mb-6">
-            your e-commerce business
-          </p>
-          <p className="text-lg text-gray-700 text-center mb-12 max-w-2xl">
-            AI-powered assistant that helps you fix issues in Shopify and WordPress stores, optimize performance, and boost sales.
-          </p>
-
-          {/* Main CTA */}
-          <Button asChild size="lg" className="text-lg px-8 py-4">
-            <a href="/login">Get free demo</a>
-          </Button>
-
-          {/* Floating Feature Cards */}
-          <div className="absolute inset-0 pointer-events-none">
-            {/* Top-left Card - Store Management */}
-            <div className="absolute top-20 left-10 transform -rotate-6 bg-white rounded-lg shadow-lg p-4 w-64">
-              <div className="flex items-start space-x-3">
-                <div className="w-8 h-8 bg-yellow-400 rounded-lg flex items-center justify-center">
-                  <div className="w-4 h-4 bg-red-500 rounded-full"></div>
-                </div>
-                <div>
-                  <h3 className="font-semibold text-gray-900 mb-2">Store Management</h3>
-                  <p className="text-sm text-gray-600">Connect and manage multiple Shopify and WordPress stores from one dashboard.</p>
-                </div>
-              </div>
-              <div className="absolute -bottom-2 -right-2 w-6 h-6 bg-blue-500 rounded-lg flex items-center justify-center">
-                <div className="w-3 h-3 bg-white rounded-sm"></div>
-              </div>
-            </div>
-
-            {/* Top-right Card - AI Analysis */}
-            <div className="absolute top-32 right-10 transform rotate-6 bg-white rounded-lg shadow-lg p-4 w-64">
-              <div className="flex items-start space-x-3">
-                <div className="w-8 h-8 bg-blue-500 rounded-lg flex items-center justify-center">
-                  <div className="w-4 h-4 bg-white rounded-sm"></div>
-                </div>
-                <div>
-                  <h3 className="font-semibold text-gray-900 mb-2">AI Analysis</h3>
-                  <p className="text-sm text-gray-600">Get intelligent insights and automated fixes for your store issues.</p>
-                </div>
-              </div>
-              <div className="absolute -bottom-2 -left-2 w-6 h-6 bg-gray-800 rounded-lg flex items-center justify-center">
-                <div className="w-3 h-3 bg-white rounded-sm"></div>
-              </div>
-            </div>
-
-            {/* Bottom-left Card - Performance Tracking */}
-            <div className="absolute bottom-32 left-10 transform -rotate-3 bg-white rounded-lg shadow-lg p-4 w-64">
-              <div className="flex items-start space-x-3">
-                <div className="w-8 h-8 bg-green-500 rounded-lg flex items-center justify-center">
-                  <div className="w-4 h-4 bg-white rounded-sm"></div>
-                </div>
-                <div>
-                  <h3 className="font-semibold text-gray-900 mb-2">Performance Tracking</h3>
-                  <p className="text-sm text-gray-600">Monitor store performance and track improvements over time.</p>
-                </div>
-              </div>
-              <div className="absolute -top-2 -right-2 w-6 h-6 bg-yellow-400 rounded-lg flex items-center justify-center">
-                <div className="w-3 h-3 bg-white rounded-sm"></div>
-              </div>
-            </div>
-
-            {/* Bottom-right Card - Integrations */}
-            <div className="absolute bottom-20 right-10 transform rotate-3 bg-white rounded-lg shadow-lg p-4 w-64">
-              <div className="flex items-start space-x-3">
-                <div className="w-8 h-8 bg-purple-500 rounded-lg flex items-center justify-center">
-                  <div className="w-4 h-4 bg-white rounded-sm"></div>
-                </div>
-                <div>
-                  <h3 className="font-semibold text-gray-900 mb-2">Platform Integrations</h3>
-                  <p className="text-sm text-gray-600">Seamlessly integrate with Shopify, WordPress, and popular e-commerce tools.</p>
-                </div>
-              </div>
-              <div className="absolute -top-2 -left-2 w-6 h-6 bg-green-500 rounded-lg flex items-center justify-center">
-                <div className="w-3 h-3 bg-white rounded-sm"></div>
-              </div>
-            </div>
+          <div className="text-center z-10">
+            <h1 className="text-5xl md:text-6xl font-display font-bold text-gray-900 mb-6 leading-tight">
+              All-in-one e-commerce platform
+            </h1>
+            <p className="text-xl text-gray-600 mb-8 max-w-2xl leading-relaxed">
+              Fix It AI is a modern, AI-powered platform designed to perfectly fix and optimize your Shopify and WordPress stores.
+            </p>
+            
+            {/* Main CTA */}
+            <Button asChild size="lg" className="text-lg px-8 py-4 bg-orange-500 hover:bg-orange-600">
+              <a href="/login">Request a Demo</a>
+            </Button>
           </div>
         </main>
       </div>
