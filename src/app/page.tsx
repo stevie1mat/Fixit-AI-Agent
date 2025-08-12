@@ -77,14 +77,14 @@ export default function Home() {
             </h1>
             
             {/* Description */}
-            <p className="text-xl font-urbanist font-light text-gray-600 mb-8 max-w-2xl mx-auto leading-relaxed">
+            <p className="text-xl font-urbanist font-light text-gray-600 mb-0  max-w-2xl mx-auto leading-relaxed">
               Transform your Shopify and WordPress stores with intelligent AI that analyzes, optimizes, and drives real results.
             </p>
           </div>
         </main>
 
         {/* Feature Cards */}
-        <section className="max-w-7xl mx-auto px-6 pb-16">
+        <section className="max-w-7xl mx-auto px-6 pb-16 -mt-4">
           <div className="grid grid-cols-1 md:grid-cols-5 gap-6">
             {/* Smart Analysis */}
             <div className="bg-white border border-gray-200 rounded-xl p-6 hover:shadow-lg transition-shadow">
