@@ -88,7 +88,7 @@ export default function Home() {
               {/* Slider Container */}
               <div className="flex overflow-x-auto scrollbar-hide gap-6 px-6 snap-x snap-mandatory">
                 {/* Smart Analysis */}
-                <div className="flex-shrink-0 w-80 bg-white border border-gray-200 rounded-2xl p-8 hover:shadow-xl transition-all duration-300 snap-start transform hover:scale-105">
+                <div className="flex-shrink-0 w-80 bg-white border border-gray-200 rounded-2xl p-8 hover:shadow-xl transition-all duration-300 snap-start transform hover:scale-105 blur-sm hover:blur-none">
                   <div className="flex justify-between items-start mb-6">
                     <div className="w-16 h-16 bg-gradient-to-br from-blue-100 to-blue-200 rounded-2xl flex items-center justify-center">
                       <svg className="w-8 h-8 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -104,7 +104,7 @@ export default function Home() {
                 </div>
 
                 {/* Auto Optimization */}
-                <div className="flex-shrink-0 w-80 bg-white border border-gray-200 rounded-2xl p-8 hover:shadow-xl transition-all duration-300 snap-start transform hover:scale-105">
+                <div className="flex-shrink-0 w-80 bg-white border border-gray-200 rounded-2xl p-8 hover:shadow-xl transition-all duration-300 snap-start transform hover:scale-105 blur-sm hover:blur-none">
                   <div className="flex justify-between items-start mb-6">
                     <div className="w-16 h-16 bg-gradient-to-br from-green-100 to-green-200 rounded-2xl flex items-center justify-center">
                       <svg className="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -140,7 +140,7 @@ export default function Home() {
                 </div>
 
                 {/* Store Integration */}
-                <div className="flex-shrink-0 w-80 bg-white border border-gray-200 rounded-2xl p-8 hover:shadow-xl transition-all duration-300 snap-start transform hover:scale-105">
+                <div className="flex-shrink-0 w-80 bg-white border border-gray-200 rounded-2xl p-8 hover:shadow-xl transition-all duration-300 snap-start transform hover:scale-105 blur-sm hover:blur-none">
                   <div className="flex justify-between items-start mb-6">
                     <div className="w-16 h-16 bg-gradient-to-br from-orange-100 to-orange-200 rounded-2xl flex items-center justify-center">
                       <svg className="w-8 h-8 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -156,7 +156,7 @@ export default function Home() {
                 </div>
 
                 {/* Performance Tracking */}
-                <div className="flex-shrink-0 w-80 bg-white border border-gray-200 rounded-2xl p-8 hover:shadow-xl transition-all duration-300 snap-start transform hover:scale-105">
+                <div className="flex-shrink-0 w-80 bg-white border border-gray-200 rounded-2xl p-8 hover:shadow-xl transition-all duration-300 snap-start transform hover:scale-105 blur-sm hover:blur-none">
                   <div className="flex justify-between items-start mb-6">
                     <div className="w-16 h-16 bg-gradient-to-br from-pink-100 to-pink-200 rounded-2xl flex items-center justify-center">
                       <svg className="w-8 h-8 text-pink-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -174,9 +174,9 @@ export default function Home() {
 
               {/* Scroll Indicators */}
               <div className="flex justify-center mt-8 space-x-2">
+                <div className="w-2 h-2 bg-gray-300 rounded-full"></div>
+                <div className="w-2 h-2 bg-gray-300 rounded-full"></div>
                 <div className="w-2 h-2 bg-purple-600 rounded-full"></div>
-                <div className="w-2 h-2 bg-gray-300 rounded-full"></div>
-                <div className="w-2 h-2 bg-gray-300 rounded-full"></div>
                 <div className="w-2 h-2 bg-gray-300 rounded-full"></div>
                 <div className="w-2 h-2 bg-gray-300 rounded-full"></div>
               </div>
