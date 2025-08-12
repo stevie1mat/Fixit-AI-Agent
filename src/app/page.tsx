@@ -64,34 +64,13 @@ export default function Home() {
           </div>
         </header>
 
-        {/* Hero Section */}
-        <main className="flex flex-col items-center justify-center min-h-[60vh] px-6">
-          <div className="text-center max-w-4xl">
-            <h1 className="text-5xl md:text-6xl font-display font-bold text-gray-900 mb-6 leading-tight">
-              AI-Driven Store Optimization Right Away
-            </h1>
-            <p className="text-xl text-gray-600 mb-8 max-w-2xl mx-auto leading-relaxed">
-              From concept to conversion — manage thousands of successful e-commerce stores seamlessly.
-            </p>
-            
-            {/* CTA Buttons */}
-            <div className="flex flex-col sm:flex-row items-center justify-center space-y-4 sm:space-y-0 sm:space-x-4">
-              <Button asChild size="lg" className="text-lg px-8 py-4 bg-black hover:bg-gray-800">
-                <a href="/login">Download Free App</a>
-              </Button>
-              <Button asChild size="lg" variant="outline" className="text-lg px-8 py-4 border-black text-black hover:bg-black hover:text-white">
-                <a href="/login">Get Started Free</a>
-              </Button>
-            </div>
-          </div>
-        </main>
-
-        {/* Floating UI Elements */}
-        <div className="relative max-w-7xl mx-auto px-6 pb-20">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 relative">
+        {/* Hero Section with Floating Widgets */}
+        <main className="flex flex-col items-center justify-center min-h-[80vh] px-6 relative">
+          {/* Floating UI Elements Around Heading */}
+          <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
             {/* Video Player Mockup - Top Left */}
-            <div className="bg-blue-100 rounded-2xl p-4 shadow-lg transform -rotate-2 hover:rotate-0 transition-transform">
-              <div className="bg-blue-200 rounded-lg p-3 mb-3">
+            <div className="absolute top-10 left-10 transform -rotate-6 bg-blue-100 rounded-2xl p-4 shadow-lg hover:rotate-0 transition-transform duration-300">
+              <div className="bg-blue-200 rounded-lg p-3">
                 <div className="flex items-center justify-between mb-2">
                   <span className="text-sm font-medium text-blue-800">2:01</span>
                   <div className="w-6 h-6 bg-blue-300 rounded-full flex items-center justify-center">
@@ -102,8 +81,8 @@ export default function Home() {
               </div>
             </div>
 
-            {/* Engagement Metric Card - Bottom Left */}
-            <div className="bg-yellow-100 rounded-2xl p-4 shadow-lg transform rotate-1 hover:rotate-0 transition-transform">
+            {/* Engagement Metric Card - Top Right */}
+            <div className="absolute top-10 right-10 transform rotate-6 bg-yellow-100 rounded-2xl p-4 shadow-lg hover:rotate-0 transition-transform duration-300">
               <div className="flex items-center space-x-2 mb-3">
                 <svg className="w-5 h-5 text-yellow-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
@@ -122,22 +101,22 @@ export default function Home() {
               </div>
             </div>
 
-            {/* Smartphone Mockup - Center */}
-            <div className="bg-black rounded-3xl p-2 shadow-2xl transform -rotate-1 hover:rotate-0 transition-transform">
-              <div className="bg-white rounded-2xl p-3 h-64 flex flex-col">
+            {/* Smartphone Mockup - Bottom Left */}
+            <div className="absolute bottom-10 left-10 transform -rotate-3 bg-black rounded-3xl p-2 shadow-2xl hover:rotate-0 transition-transform duration-300">
+              <div className="bg-white rounded-2xl p-3 h-48 w-32 flex flex-col">
                 <div className="flex items-center justify-between mb-3">
                   <div className="flex items-center space-x-2">
-                    <div className="w-6 h-6 bg-gray-300 rounded-full"></div>
+                    <div className="w-4 h-4 bg-gray-300 rounded-full"></div>
                     <span className="text-xs font-medium">Wade Warren</span>
                   </div>
-                  <div className="flex items-center space-x-1 bg-red-500 text-white px-2 py-1 rounded-full">
-                    <div className="w-2 h-2 bg-white rounded-full animate-pulse"></div>
+                  <div className="flex items-center space-x-1 bg-red-500 text-white px-1 py-0.5 rounded-full">
+                    <div className="w-1 h-1 bg-white rounded-full animate-pulse"></div>
                     <span className="text-xs">Live</span>
                   </div>
                 </div>
                 <div className="flex-1 bg-gradient-to-br from-orange-200 to-red-200 rounded-lg flex items-center justify-center">
-                  <div className="w-16 h-16 bg-orange-300 rounded-full flex items-center justify-center">
-                    <svg className="w-8 h-8 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <div className="w-12 h-12 bg-orange-300 rounded-full flex items-center justify-center">
+                    <svg className="w-6 h-6 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                     </svg>
                   </div>
@@ -145,48 +124,70 @@ export default function Home() {
               </div>
             </div>
 
-            {/* Sales/Inventory Card - Top Right */}
-            <div className="bg-green-100 rounded-2xl p-4 shadow-lg transform rotate-2 hover:rotate-0 transition-transform">
+            {/* Sales/Inventory Card - Bottom Right */}
+            <div className="absolute bottom-10 right-10 transform rotate-3 bg-green-100 rounded-2xl p-4 shadow-lg hover:rotate-0 transition-transform duration-300">
               <div className="flex items-center justify-between mb-3">
                 <div>
                   <div className="text-sm font-semibold text-green-800">8 items Sold this week</div>
                   <div className="text-lg font-bold text-green-900">$12</div>
                 </div>
-                <div className="w-12 h-12 bg-green-200 rounded-lg flex items-center justify-center">
-                  <div className="w-8 h-8 bg-green-600 rounded-full flex items-center justify-center">
+                <div className="w-10 h-10 bg-green-200 rounded-lg flex items-center justify-center">
+                  <div className="w-6 h-6 bg-green-600 rounded-full flex items-center justify-center">
                     <span className="text-xs font-bold text-white">AG</span>
                   </div>
                 </div>
               </div>
             </div>
 
-            {/* Social Media Post Mockup - Bottom Right */}
-            <div className="bg-white rounded-2xl p-4 shadow-lg border border-gray-200 transform -rotate-1 hover:rotate-0 transition-transform">
-              <div className="bg-green-200 rounded-lg h-24 mb-3 flex items-center justify-center">
-                <div className="w-12 h-12 bg-green-300 rounded-full flex items-center justify-center">
-                  <svg className="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            {/* Social Media Post Mockup - Center Right */}
+            <div className="absolute right-20 top-1/2 transform -translate-y-1/2 rotate-2 bg-white rounded-2xl p-4 shadow-lg border border-gray-200 hover:rotate-0 transition-transform duration-300">
+              <div className="bg-green-200 rounded-lg h-20 mb-3 flex items-center justify-center">
+                <div className="w-10 h-10 bg-green-300 rounded-full flex items-center justify-center">
+                  <svg className="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
                   </svg>
                 </div>
               </div>
               <div className="flex items-center justify-between">
-                <div className="flex items-center space-x-3">
-                  <svg className="w-5 h-5 text-red-500" fill="currentColor" viewBox="0 0 20 20">
+                <div className="flex items-center space-x-2">
+                  <svg className="w-4 h-4 text-red-500" fill="currentColor" viewBox="0 0 20 20">
                     <path fillRule="evenodd" d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z" clipRule="evenodd" />
                   </svg>
                   <span className="text-sm font-medium">1.5k</span>
                 </div>
-                <div className="flex items-center space-x-2">
-                  <svg className="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <div className="flex items-center space-x-1">
+                  <svg className="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3h2l.4 2M7 13h10l4-8H5.4m0 0L7 13m0 0l-2.5 5M7 13l2.5 5m6-5v6a2 2 0 01-2 2H9a2 2 0 01-2-2v-6m8 0V9a2 2 0 00-2-2H9a2 2 0 00-2 2v4.01" />
                   </svg>
-                  <svg className="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <svg className="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
                   </svg>
                 </div>
               </div>
             </div>
+          </div>
+
+          {/* Central Content */}
+          <div className="text-center max-w-3xl z-10 relative">
+            <h1 className="text-3xl md:text-4xl font-display font-bold text-gray-900 mb-6 leading-tight">
+              AI-Driven Store Optimization Right Away
+            </h1>
+            <p className="text-lg text-gray-600 mb-8 max-w-2xl mx-auto leading-relaxed">
+              From concept to conversion — manage thousands of successful e-commerce stores seamlessly.
+            </p>
+            
+            {/* CTA Buttons */}
+            <div className="flex flex-col sm:flex-row items-center justify-center space-y-4 sm:space-y-0 sm:space-x-4">
+              <Button asChild size="lg" className="text-lg px-8 py-4 bg-black hover:bg-gray-800">
+                <a href="/login">Download Free App</a>
+              </Button>
+              <Button asChild size="lg" variant="outline" className="text-lg px-8 py-4 border-black text-black hover:bg-black hover:text-white">
+                <a href="/login">Get Started Free</a>
+              </Button>
+            </div>
+          </div>
+        </main>
           </div>
         </div>
 
