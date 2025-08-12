@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { ChatBox } from '@/components/ChatBox'
 import { ChangePreview } from '@/components/ChangePreview'
 import { Sidebar } from '@/components/Sidebar'
@@ -14,6 +14,39 @@ export default function Home() {
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const { currentPreview, connections } = useAppStore()
   const { user, signOut, loading } = useAuth()
+
+  // Autoplay slider functionality
+  useEffect(() => {
+    if (!user) { // Only for landing page
+      const slider = document.getElementById('feature-slider');
+      const track = document.getElementById('slider-track');
+      
+      if (slider && track) {
+        const cards = track.children;
+        const cardWidth = 320; // w-80 = 320px
+        const gap = 24; // gap-6 = 24px
+        const totalWidth = cardWidth + gap;
+        let currentIndex = 0;
+        
+        // Center the slider initially
+        const centerOffset = (slider.offsetWidth - cardWidth) / 2;
+        track.style.transform = `translateX(${centerOffset}px)`;
+        
+        const nextSlide = () => {
+          currentIndex = (currentIndex + 1) % cards.length;
+          const translateX = centerOffset - (currentIndex * totalWidth);
+          if (track) {
+            track.style.transform = `translateX(${translateX}px)`;
+          }
+        };
+        
+        // Autoplay every 3 seconds
+        const interval = setInterval(nextSlide, 3000);
+        
+        return () => clearInterval(interval);
+      }
+    }
+  }, [user]);
 
   // Show loading state
   if (loading) {
@@ -86,7 +119,8 @@ export default function Home() {
           <section className="w-full pb-16">
             <div className="relative">
               {/* Slider Container */}
-              <div className="flex overflow-x-auto scrollbar-hide gap-6 px-6 snap-x snap-mandatory">
+              <div className="flex overflow-hidden gap-6 snap-x snap-mandatory transition-transform duration-1000 ease-in-out" id="feature-slider">
+                <div className="flex gap-6 transition-transform duration-1000 ease-in-out" id="slider-track">
                 {/* Smart Analysis */}
                 <div className="flex-shrink-0 w-80 bg-white border border-gray-200 rounded-lg p-8 snap-start blur-sm hover:blur-none">
                   <div className="text-center mb-6">
@@ -156,6 +190,7 @@ export default function Home() {
                     </svg>
                   </div>
                   <h3 className="font-urbanist font-light text-gray-800 text-lg text-center">Auto Optimization</h3>
+                </div>
                 </div>
               </div>
 
