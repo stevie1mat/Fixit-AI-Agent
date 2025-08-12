@@ -67,7 +67,7 @@ export default function Home() {
         <main className="flex flex-col items-center justify-center px-6">
           <div className="text-center max-w-4xl mb-8">
             {/* Subtitle */}
-            <p className="text-sm font-urbanist font-light text-gray-500 uppercase tracking-wider mb-4">
+            <p className="text-sm font-urbanist font-light text-gray-500 uppercase tracking-wider mb-4 mt-8">
               — E-COMMERCE OPTIMIZATION —
             </p>
             
