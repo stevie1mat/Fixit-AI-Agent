@@ -155,23 +155,23 @@ export default function SettingsPage() {
       <div className="min-h-screen bg-background">
         {/* Header */}
         <header className="border-b bg-card">
-        <div className="flex items-center justify-between p-4">
-          <div className="flex items-center space-x-4">
-            <Button variant="ghost" size="sm" asChild>
-              <a href="/">
-                <ArrowLeft className="h-4 w-4 mr-2" />
-                Back
-              </a>
-            </Button>
-            <div>
-              <h1 className="text-xl font-bold">Settings</h1>
-              <p className="text-sm text-muted-foreground">
-                Connect your stores and configure API keys
-              </p>
+          <div className="flex items-center justify-between p-4">
+            <div className="flex items-center space-x-4">
+              <Button variant="ghost" size="sm" asChild>
+                <a href="/">
+                  <ArrowLeft className="h-4 w-4 mr-2" />
+                  Back
+                </a>
+              </Button>
+              <div>
+                <h1 className="text-xl font-bold">Settings</h1>
+                <p className="text-sm text-muted-foreground">
+                  Connect your stores and configure API keys
+                </p>
+              </div>
             </div>
           </div>
-        </div>
-      </header>
+        </header>
 
       <div className="max-w-4xl mx-auto p-6">
         {/* Tabs */}
