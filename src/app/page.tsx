@@ -188,8 +188,6 @@ export default function Home() {
             </div>
           </div>
         </main>
-          </div>
-        </div>
 
         {/* Partner Logos */}
         <footer className="border-t border-gray-200 py-12">
