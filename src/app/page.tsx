@@ -34,118 +34,189 @@ export default function Home() {
         {/* Header */}
         <header className="flex items-center justify-between p-6 max-w-7xl mx-auto">
           <div className="flex items-center space-x-2">
-            <span className="text-xl font-display font-bold text-gray-900">Fix It AI</span>
+            <div className="w-8 h-8 bg-black rounded-full flex items-center justify-center">
+              <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
+              </svg>
+            </div>
+            <span className="text-xl font-display font-bold text-gray-900">/hello@fixit.ai</span>
           </div>
           
           <nav className="hidden md:flex items-center space-x-8">
-            <a href="#product" className="text-gray-600 hover:text-gray-900">Product</a>
-            <a href="#features" className="text-gray-600 hover:text-gray-900">Features</a>
-            <a href="#pricing" className="text-gray-600 hover:text-gray-900">Pricing</a>
+            <div className="flex items-center space-x-1">
+              <a href="#products" className="text-gray-600 hover:text-gray-900">Products</a>
+              <svg className="w-3 h-3 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+              </svg>
+            </div>
+            <a href="#stories" className="text-gray-600 hover:text-gray-900">Customer Stories</a>
             <a href="#resources" className="text-gray-600 hover:text-gray-900">Resources</a>
+            <a href="#pricing" className="text-gray-600 hover:text-gray-900">Pricing</a>
           </nav>
           
           <div className="flex items-center space-x-4">
-            <Button variant="outline" asChild>
-              <a href="/login">Sign in</a>
+            <Button variant="outline" asChild className="border-black text-black hover:bg-black hover:text-white">
+              <a href="/login">Book A Demo</a>
             </Button>
-            <Button asChild>
-              <a href="/login">Request a Demo</a>
+            <Button asChild className="bg-black hover:bg-gray-800">
+              <a href="/login">Get Started</a>
             </Button>
           </div>
         </header>
 
-        {/* Main Content */}
-        <main className="flex flex-col items-center justify-center min-h-[80vh] px-6 relative">
-          {/* Connected Feature Elements */}
-          <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-            {/* Central Icon */}
-            <div className="w-20 h-20 bg-purple-500 rounded-2xl flex items-center justify-center shadow-lg">
-              <svg className="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-              </svg>
+        {/* Hero Section */}
+        <main className="flex flex-col items-center justify-center min-h-[60vh] px-6">
+          <div className="text-center max-w-4xl">
+            <h1 className="text-5xl md:text-6xl font-display font-bold text-gray-900 mb-6 leading-tight">
+              AI-Driven Store Optimization Right Away
+            </h1>
+            <p className="text-xl text-gray-600 mb-8 max-w-2xl mx-auto leading-relaxed">
+              From concept to conversion — manage thousands of successful e-commerce stores seamlessly.
+            </p>
+            
+            {/* CTA Buttons */}
+            <div className="flex flex-col sm:flex-row items-center justify-center space-y-4 sm:space-y-0 sm:space-x-4">
+              <Button asChild size="lg" className="text-lg px-8 py-4 bg-black hover:bg-gray-800">
+                <a href="/login">Download Free App</a>
+              </Button>
+              <Button asChild size="lg" variant="outline" className="text-lg px-8 py-4 border-black text-black hover:bg-black hover:text-white">
+                <a href="/login">Get Started Free</a>
+              </Button>
+            </div>
+          </div>
+        </main>
+
+        {/* Floating UI Elements */}
+        <div className="relative max-w-7xl mx-auto px-6 pb-20">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 relative">
+            {/* Video Player Mockup - Top Left */}
+            <div className="bg-blue-100 rounded-2xl p-4 shadow-lg transform -rotate-2 hover:rotate-0 transition-transform">
+              <div className="bg-blue-200 rounded-lg p-3 mb-3">
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-sm font-medium text-blue-800">2:01</span>
+                  <div className="w-6 h-6 bg-blue-300 rounded-full flex items-center justify-center">
+                    <div className="w-3 h-3 bg-blue-600 rounded-full"></div>
+                  </div>
+                </div>
+                <div className="text-xs text-blue-700 opacity-70">Olivanna</div>
+              </div>
             </div>
 
-            {/* Left Side Elements */}
-            <div className="absolute left-20 top-1/2 transform -translate-y-1/2 space-y-8">
-              {/* Top-left: Lightbulb */}
-              <div className="w-12 h-12 bg-yellow-400 rounded-xl flex items-center justify-center shadow-lg">
-                <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
+            {/* Engagement Metric Card - Bottom Left */}
+            <div className="bg-yellow-100 rounded-2xl p-4 shadow-lg transform rotate-1 hover:rotate-0 transition-transform">
+              <div className="flex items-center space-x-2 mb-3">
+                <svg className="w-5 h-5 text-yellow-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                </svg>
+                <span className="font-semibold text-yellow-800">Engagement 40%</span>
+                <svg className="w-4 h-4 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 10l7-7m0 0l7 7m-7-7v18" />
                 </svg>
               </div>
-              
-              {/* Middle-left: Profile */}
-              <div className="w-12 h-12 bg-gradient-to-br from-blue-400 to-purple-500 rounded-full shadow-lg flex items-center justify-center">
-                <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                </svg>
-              </div>
-              
-              {/* Bottom-left: Balloons */}
-              <div className="w-12 h-12 bg-blue-400 rounded-xl flex items-center justify-center shadow-lg">
-                <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 4V2a1 1 0 011-1h8a1 1 0 011 1v2m-9 0h10m-10 0a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V6a2 2 0 00-2-2" />
-                </svg>
+              <div className="bg-purple-100 rounded-lg p-2 flex space-x-1">
+                {[...Array(5)].map((_, i) => (
+                  <svg key={i} className="w-4 h-4 text-yellow-600" fill="currentColor" viewBox="0 0 20 20">
+                    <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                  </svg>
+                ))}
               </div>
             </div>
 
-            {/* Right Side Elements */}
-            <div className="absolute right-20 top-1/2 transform -translate-y-1/2 space-y-8">
-              {/* Top-right: Lightning */}
-              <div className="w-12 h-12 bg-orange-500 rounded-xl flex items-center justify-center shadow-lg">
-                <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
-                </svg>
-              </div>
-              
-              {/* Middle-right: Profile */}
-              <div className="w-12 h-12 bg-gradient-to-br from-pink-400 to-red-500 rounded-full shadow-lg flex items-center justify-center">
-                <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                </svg>
-              </div>
-              
-              {/* Bottom-right: Eyes */}
-              <div className="w-12 h-12 bg-white border-2 border-gray-200 rounded-xl flex items-center justify-center shadow-lg">
-                <div className="flex space-x-1">
-                  <div className="w-2 h-2 bg-gray-800 rounded-full"></div>
-                  <div className="w-2 h-2 bg-gray-800 rounded-full"></div>
+            {/* Smartphone Mockup - Center */}
+            <div className="bg-black rounded-3xl p-2 shadow-2xl transform -rotate-1 hover:rotate-0 transition-transform">
+              <div className="bg-white rounded-2xl p-3 h-64 flex flex-col">
+                <div className="flex items-center justify-between mb-3">
+                  <div className="flex items-center space-x-2">
+                    <div className="w-6 h-6 bg-gray-300 rounded-full"></div>
+                    <span className="text-xs font-medium">Wade Warren</span>
+                  </div>
+                  <div className="flex items-center space-x-1 bg-red-500 text-white px-2 py-1 rounded-full">
+                    <div className="w-2 h-2 bg-white rounded-full animate-pulse"></div>
+                    <span className="text-xs">Live</span>
+                  </div>
+                </div>
+                <div className="flex-1 bg-gradient-to-br from-orange-200 to-red-200 rounded-lg flex items-center justify-center">
+                  <div className="w-16 h-16 bg-orange-300 rounded-full flex items-center justify-center">
+                    <svg className="w-8 h-8 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                    </svg>
+                  </div>
                 </div>
               </div>
             </div>
 
-            {/* Connection Lines */}
-            <svg className="absolute inset-0 w-full h-full" style={{ zIndex: -1 }}>
-              <defs>
-                <pattern id="dots" x="0" y="0" width="20" height="20" patternUnits="userSpaceOnUse">
-                  <circle cx="10" cy="10" r="1" fill="#e5e7eb" />
-                </pattern>
-              </defs>
-              <rect width="100%" height="100%" fill="url(#dots)" />
-              
-              {/* Connection lines */}
-              <line x1="25%" y1="50%" x2="75%" y2="50%" stroke="#e5e7eb" strokeWidth="1" strokeDasharray="5,5" />
-              <line x1="50%" y1="25%" x2="50%" y2="75%" stroke="#e5e7eb" strokeWidth="1" strokeDasharray="5,5" />
-              <line x1="25%" y1="25%" x2="75%" y2="75%" stroke="#e5e7eb" strokeWidth="1" strokeDasharray="5,5" />
-              <line x1="75%" y1="25%" x2="25%" y2="75%" stroke="#e5e7eb" strokeWidth="1" strokeDasharray="5,5" />
-            </svg>
-          </div>
+            {/* Sales/Inventory Card - Top Right */}
+            <div className="bg-green-100 rounded-2xl p-4 shadow-lg transform rotate-2 hover:rotate-0 transition-transform">
+              <div className="flex items-center justify-between mb-3">
+                <div>
+                  <div className="text-sm font-semibold text-green-800">8 items Sold this week</div>
+                  <div className="text-lg font-bold text-green-900">$12</div>
+                </div>
+                <div className="w-12 h-12 bg-green-200 rounded-lg flex items-center justify-center">
+                  <div className="w-8 h-8 bg-green-600 rounded-full flex items-center justify-center">
+                    <span className="text-xs font-bold text-white">AG</span>
+                  </div>
+                </div>
+              </div>
+            </div>
 
-          {/* Headlines */}
-          <div className="text-center z-10">
-            <h1 className="text-5xl md:text-6xl font-display font-bold text-gray-900 mb-6 leading-tight">
-              All-in-one e-commerce platform
-            </h1>
-            <p className="text-xl text-gray-600 mb-8 max-w-2xl leading-relaxed">
-              Fix It AI is a modern, AI-powered platform designed to perfectly fix and optimize your Shopify and WordPress stores.
-            </p>
-            
-            {/* Main CTA */}
-            <Button asChild size="lg" className="text-lg px-8 py-4 bg-orange-500 hover:bg-orange-600">
-              <a href="/login">Request a Demo</a>
-            </Button>
+            {/* Social Media Post Mockup - Bottom Right */}
+            <div className="bg-white rounded-2xl p-4 shadow-lg border border-gray-200 transform -rotate-1 hover:rotate-0 transition-transform">
+              <div className="bg-green-200 rounded-lg h-24 mb-3 flex items-center justify-center">
+                <div className="w-12 h-12 bg-green-300 rounded-full flex items-center justify-center">
+                  <svg className="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                  </svg>
+                </div>
+              </div>
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-3">
+                  <svg className="w-5 h-5 text-red-500" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z" clipRule="evenodd" />
+                  </svg>
+                  <span className="text-sm font-medium">1.5k</span>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <svg className="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3h2l.4 2M7 13h10l4-8H5.4m0 0L7 13m0 0l-2.5 5M7 13l2.5 5m6-5v6a2 2 0 01-2 2H9a2 2 0 01-2-2v-6m8 0V9a2 2 0 00-2-2H9a2 2 0 00-2 2v4.01" />
+                  </svg>
+                  <svg className="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
+                  </svg>
+                </div>
+              </div>
+            </div>
           </div>
-        </main>
+        </div>
+
+        {/* Partner Logos */}
+        <footer className="border-t border-gray-200 py-12">
+          <div className="max-w-7xl mx-auto px-6">
+            <div className="text-center mb-8">
+              <p className="text-sm text-gray-500 mb-4">Trusted by leading e-commerce brands</p>
+            </div>
+            <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-9 gap-8 items-center">
+              {[
+                'HEIRESS BEVERLY HILLS',
+                'TOZO',
+                'HELL BABES',
+                'cocokind',
+                'Oxyfresh',
+                'DOT & KEY SKINCARE',
+                'Skybags MOVE IN STYLE',
+                'Bellefit -EST 2008-',
+                'AMAZING LACE'
+              ].map((brand, index) => (
+                <div key={index} className="text-center">
+                  <div className="text-xs font-semibold text-gray-400 tracking-wider">
+                    {brand}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </footer>
       </div>
     )
   }
