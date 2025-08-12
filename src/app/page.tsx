@@ -17,34 +17,44 @@ export default function Home() {
 
   // Autoplay slider functionality
   useEffect(() => {
+    let interval: NodeJS.Timeout;
+    
     if (!user) { // Only for landing page
-      const slider = document.getElementById('feature-slider');
-      const track = document.getElementById('slider-track');
-      
-      if (slider && track) {
-        const cards = track.children;
-        const cardWidth = 320; // w-80 = 320px
-        const gap = 24; // gap-6 = 24px
-        const totalWidth = cardWidth + gap;
-        let currentIndex = 0;
+      const initSlider = () => {
+        const slider = document.getElementById('feature-slider');
+        const track = document.getElementById('slider-track');
         
-        // Center the slider initially
-        const centerOffset = (slider.offsetWidth - cardWidth) / 2;
-        track.style.transform = `translateX(${centerOffset}px)`;
-        
-        const nextSlide = () => {
-          currentIndex = (currentIndex + 1) % cards.length;
-          const translateX = centerOffset - (currentIndex * totalWidth);
-          if (track) {
+        if (slider && track) {
+          const cards = track.children;
+          const cardWidth = 320; // w-80 = 320px
+          const gap = 24; // gap-6 = 24px
+          const totalWidth = cardWidth + gap;
+          let currentIndex = 0;
+          
+          // Center the slider initially
+          const centerOffset = (slider.offsetWidth - cardWidth) / 2;
+          track.style.transform = `translateX(${centerOffset}px)`;
+          
+          const nextSlide = () => {
+            currentIndex = (currentIndex + 1) % cards.length;
+            const translateX = centerOffset - (currentIndex * totalWidth);
             track.style.transform = `translateX(${translateX}px)`;
-          }
-        };
-        
-        // Autoplay every 3 seconds
-        const interval = setInterval(nextSlide, 3000);
-        
-        return () => clearInterval(interval);
-      }
+          };
+          
+          // Start autoplay
+          interval = setInterval(nextSlide, 3000);
+        }
+      };
+      
+      // Initialize after a short delay to ensure DOM is ready
+      const timer = setTimeout(initSlider, 500);
+      
+      return () => {
+        clearTimeout(timer);
+        if (interval) {
+          clearInterval(interval);
+        }
+      };
     }
   }, [user]);
 
