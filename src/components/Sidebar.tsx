@@ -1,6 +1,7 @@
 'use client'
 
 import { useAppStore } from '@/lib/store'
+import { useAuth } from '@/contexts/AuthContext'
 import { Button } from '@/components/ui/Button'
 import { X, Settings, History, Store, Plus, Trash2 } from 'lucide-react'
 import { cn } from '@/lib/utils'
@@ -12,6 +13,23 @@ interface SidebarProps {
 
 export function Sidebar({ isOpen, onClose }: SidebarProps) {
   const { connections, messages, removeConnection } = useAppStore()
+  const { user } = useAuth()
+
+  const handleRemoveConnection = async (connectionId: string) => {
+    // Remove from local store
+    removeConnection(connectionId)
+
+    // Remove from database
+    if (user?.id) {
+      try {
+        await fetch(`/api/store-connections?connectionId=${connectionId}`, {
+          method: 'DELETE',
+        })
+      } catch (error) {
+        console.error('Failed to remove connection from database:', error)
+      }
+    }
+  }
 
   return (
     <>
@@ -131,7 +149,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
                         <Button
                           variant="ghost"
                           size="sm"
-                          onClick={() => removeConnection(connection.id)}
+                          onClick={() => handleRemoveConnection(connection.id)}
                           className="h-6 w-6 p-0 text-muted-foreground hover:text-destructive"
                           title="Remove connection"
                         >

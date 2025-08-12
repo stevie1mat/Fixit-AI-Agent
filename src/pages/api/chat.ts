@@ -1,5 +1,6 @@
 import { NextApiRequest, NextApiResponse } from 'next'
 import { ShopifyAPI } from '@/lib/shopify'
+import { supabase } from '@/lib/supabase'
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== 'POST') {
@@ -7,28 +8,52 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 
   try {
-    const { message, storeData } = req.body
+    const { message, storeData, userId } = req.body
 
     if (!message) {
       return res.status(400).json({ error: 'Message is required' })
     }
 
-    // If store data is provided, use it; otherwise, scan the store
+    // Get store connections from database
     let storeInfo = ''
-    console.log('Received store data:', JSON.stringify(storeData, null, 2))
+    let connection = null
     
-    if (storeData && storeData.connections && storeData.connections.length > 0) {
-      // Find the first connection with an access token
-      const connection = storeData.connections.find(conn => conn.accessToken) || storeData.connections[0]
-      console.log('Connection found:', connection)
+    if (userId) {
+      console.log('Fetching store connections for user:', userId)
       
-      if (!connection.accessToken) {
+      const { data: connections, error } = await supabase
+        .from('store_connections')
+        .select('*')
+        .eq('user_id', userId)
+        .eq('is_connected', true)
+        .order('created_at', { ascending: false })
+        .limit(1)
+
+      if (error) {
+        console.error('Error fetching store connections:', error)
+      } else if (connections && connections.length > 0) {
+        connection = connections[0]
+        console.log('Found active store connection:', connection.url)
+      }
+    }
+
+    // If no database connection found, fall back to frontend data
+    if (!connection && storeData && storeData.connections && storeData.connections.length > 0) {
+      connection = storeData.connections.find(conn => conn.accessToken) || storeData.connections[0]
+      console.log('Using frontend store data as fallback')
+    }
+
+    if (connection) {
+      if (!connection.access_token && !connection.accessToken) {
         console.log('No access token found')
         storeInfo = 'Store connected but access token not available. Please reconnect your store in settings.'
       } else {
         try {
-          console.log('Attempting to connect to Shopify with URL:', connection.url)
-          const shopify = new ShopifyAPI(connection.url, connection.accessToken)
+          const accessToken = connection.access_token || connection.accessToken
+          const storeUrl = connection.url
+          
+          console.log('Attempting to connect to Shopify with URL:', storeUrl)
+          const shopify = new ShopifyAPI(storeUrl, accessToken)
           
           // Scan store data
           const products = await shopify.getProducts(10) // Get first 10 products
@@ -36,7 +61,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           
           storeInfo = `
 Current Store Data:
-- Store URL: ${connection.url}
+- Store URL: ${storeUrl}
 - Products: ${products.length} products found
 - Themes: ${themes.length} themes found
 - Main theme: ${themes.find(t => t.role === 'main')?.name || 'Unknown'}
@@ -51,7 +76,7 @@ ${products.slice(0, 5).map(p => `- ${p.title} (${p.variants.length} variants)`).
         }
       }
     } else {
-      console.log('No store data or connections found')
+      console.log('No store connections found in database or frontend data')
     }
 
     // Set up streaming response

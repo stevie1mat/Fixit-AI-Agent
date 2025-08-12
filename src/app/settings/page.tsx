@@ -49,12 +49,35 @@ export default function SettingsPage() {
 
       if (response.ok) {
         setTestResult('success')
+        
+        // Add to local store
         addConnection({
           type: 'shopify',
           url: shopifyForm.storeUrl,
           accessToken: shopifyForm.accessToken,
           isConnected: true,
         })
+
+        // Store in database
+        if (user?.id) {
+          try {
+            await fetch('/api/store-connections', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify({
+                userId: user.id,
+                type: 'shopify',
+                url: shopifyForm.storeUrl,
+                accessToken: shopifyForm.accessToken,
+              }),
+            })
+          } catch (error) {
+            console.error('Failed to store connection in database:', error)
+          }
+        }
+
         setShopifyForm({ storeUrl: '', accessToken: '' })
       } else {
         setTestResult('error')
@@ -87,12 +110,35 @@ export default function SettingsPage() {
 
       if (response.ok) {
         setTestResult('success')
+        
+        // Add to local store
         addConnection({
           type: 'wordpress',
           url: wordpressForm.baseUrl,
           accessToken: wordpressForm.appPassword,
           isConnected: true,
         })
+
+        // Store in database
+        if (user?.id) {
+          try {
+            await fetch('/api/store-connections', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify({
+                userId: user.id,
+                type: 'wordpress',
+                url: wordpressForm.baseUrl,
+                accessToken: wordpressForm.appPassword,
+              }),
+            })
+          } catch (error) {
+            console.error('Failed to store connection in database:', error)
+          }
+        }
+
         setWordpressForm({ baseUrl: '', username: '', appPassword: '' })
       } else {
         setTestResult('error')

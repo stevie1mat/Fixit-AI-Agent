@@ -2,6 +2,7 @@
 
 import { useState, useRef, useEffect } from 'react'
 import { useAppStore } from '@/lib/store'
+import { useAuth } from '@/contexts/AuthContext'
 import { Button } from '@/components/ui/Button'
 import { Send, Loader2, Bot, User } from 'lucide-react'
 import { cn } from '@/lib/utils'
@@ -11,6 +12,7 @@ export function ChatBox() {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const { messages, addMessage, setLoading, isLoading, updateLastMessage, connections } = useAppStore()
+  const { user } = useAuth()
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
@@ -45,6 +47,7 @@ export function ChatBox() {
         body: JSON.stringify({
           message: userMessage,
           storeData: { connections },
+          userId: user?.id,
         }),
       })
 
