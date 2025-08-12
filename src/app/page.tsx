@@ -32,7 +32,25 @@ export default function Home() {
     // Show landing page for unauthenticated users
   if (!user) {
     return (
-      <div className="min-h-screen bg-white">
+      <div className="min-h-screen bg-white relative overflow-hidden">
+        {/* Background decorative elements */}
+        <div className="absolute inset-0 pointer-events-none">
+          {/* Large circles */}
+          <div className="absolute top-20 left-10 w-32 h-32 border border-gray-100 rounded-full"></div>
+          <div className="absolute top-40 right-20 w-24 h-24 border border-gray-100 rounded-full"></div>
+          <div className="absolute bottom-40 left-20 w-40 h-40 border border-gray-100 rounded-full"></div>
+          <div className="absolute bottom-20 right-10 w-28 h-28 border border-gray-100 rounded-full"></div>
+          
+          {/* Lines */}
+          <div className="absolute top-1/4 left-0 w-32 h-px bg-gradient-to-r from-transparent via-gray-100 to-transparent"></div>
+          <div className="absolute top-1/3 right-0 w-40 h-px bg-gradient-to-l from-transparent via-gray-100 to-transparent"></div>
+          <div className="absolute bottom-1/3 left-0 w-48 h-px bg-gradient-to-r from-transparent via-gray-100 to-transparent"></div>
+          <div className="absolute bottom-1/4 right-0 w-36 h-px bg-gradient-to-l from-transparent via-gray-100 to-transparent"></div>
+          
+          {/* Diagonal lines */}
+          <div className="absolute top-1/2 left-1/4 w-64 h-px bg-gradient-to-r from-transparent via-gray-100 to-transparent transform -rotate-12"></div>
+          <div className="absolute top-1/2 right-1/4 w-64 h-px bg-gradient-to-l from-transparent via-gray-100 to-transparent transform rotate-12"></div>
+        </div>
         {/* Header */}
         <header className="flex items-center justify-between p-6 max-w-7xl mx-auto">
           <div className="flex items-center space-x-2">
