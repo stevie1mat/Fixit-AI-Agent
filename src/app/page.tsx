@@ -64,8 +64,8 @@ export default function Home() {
         </header>
 
         {/* Hero Section */}
-        <main className="flex flex-col items-center justify-center min-h-[60vh] px-6">
-          <div className="text-center max-w-4xl">
+        <main className="flex flex-col items-center justify-center px-6">
+          <div className="text-center max-w-4xl mb-8">
             {/* Subtitle */}
             <p className="text-sm font-urbanist font-light text-gray-500 uppercase tracking-wider mb-4">
               — E-COMMERCE OPTIMIZATION —
@@ -81,10 +81,9 @@ export default function Home() {
               Transform your Shopify and WordPress stores with intelligent AI that analyzes, optimizes, and drives real results.
             </p>
           </div>
-        </main>
 
-        {/* Feature Cards */}
-        <section className="max-w-7xl mx-auto px-6 pb-16 -mt-8">
+          {/* Feature Cards */}
+          <section className="max-w-7xl mx-auto px-6 pb-16 w-full">
           <div className="grid grid-cols-1 md:grid-cols-5 gap-6">
             {/* Smart Analysis */}
             <div className="bg-white border border-gray-200 rounded-xl p-6 hover:shadow-lg transition-shadow">
@@ -156,6 +155,7 @@ export default function Home() {
             </div>
           </div>
         </section>
+        </main>
 
         {/* Main CTA */}
         <section className="text-center pb-16">
