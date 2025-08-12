@@ -89,86 +89,52 @@ export default function Home() {
               <div className="flex overflow-x-auto scrollbar-hide gap-6 px-6 snap-x snap-mandatory">
                 {/* Smart Analysis */}
                 <div className="flex-shrink-0 w-80 bg-white border border-gray-200 rounded-2xl p-8 hover:shadow-xl transition-all duration-300 snap-start transform hover:scale-105 blur-sm hover:blur-none">
-                  <div className="flex justify-between items-start mb-6">
-                    <div className="w-16 h-16 bg-gradient-to-br from-blue-100 to-blue-200 rounded-2xl flex items-center justify-center">
-                      <svg className="w-8 h-8 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-                      </svg>
-                    </div>
-                    <div className="w-6 h-6 border-2 border-gray-300 rounded-full"></div>
+                  <div className="text-center mb-6">
+                    <svg className="w-12 h-12 text-black mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                    </svg>
                   </div>
-                  <h3 className="font-urbanist font-light text-gray-900 text-xl mb-3">Smart Analysis</h3>
-                  <p className="text-gray-600 font-urbanist font-light text-sm leading-relaxed">
-                    Advanced AI algorithms analyze your store data to identify optimization opportunities and growth potential.
-                  </p>
+                  <h3 className="font-urbanist font-light text-black text-lg text-center">Smart Analysis</h3>
                 </div>
 
                 {/* Auto Optimization */}
                 <div className="flex-shrink-0 w-80 bg-white border border-gray-200 rounded-2xl p-8 hover:shadow-xl transition-all duration-300 snap-start transform hover:scale-105 blur-sm hover:blur-none">
-                  <div className="flex justify-between items-start mb-6">
-                    <div className="w-16 h-16 bg-gradient-to-br from-green-100 to-green-200 rounded-2xl flex items-center justify-center">
-                      <svg className="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
-                      </svg>
-                    </div>
-                    <div className="w-6 h-6 border-2 border-gray-300 rounded-full"></div>
+                  <div className="text-center mb-6">
+                    <svg className="w-12 h-12 text-black mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                    </svg>
                   </div>
-                  <h3 className="font-urbanist font-light text-gray-900 text-xl mb-3">Auto Optimization</h3>
-                  <p className="text-gray-600 font-urbanist font-light text-sm leading-relaxed">
-                    Automatically optimize product listings, pricing strategies, and marketing campaigns for maximum performance.
-                  </p>
+                  <h3 className="font-urbanist font-light text-black text-lg text-center">Auto Optimization</h3>
                 </div>
 
                 {/* AI Chat Assistant - Highlighted */}
-                <div className="flex-shrink-0 w-80 bg-gradient-to-br from-purple-50 to-purple-100 border-2 border-purple-200 rounded-2xl p-8 hover:shadow-xl transition-all duration-300 snap-start transform hover:scale-105">
-                  <div className="flex justify-between items-start mb-6">
-                    <div className="w-16 h-16 bg-gradient-to-br from-purple-200 to-purple-300 rounded-2xl flex items-center justify-center">
-                      <svg className="w-8 h-8 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
-                      </svg>
-                    </div>
-                    <div className="w-6 h-6 bg-purple-600 rounded-full flex items-center justify-center">
-                      <svg className="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20">
-                        <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                      </svg>
-                    </div>
+                <div className="flex-shrink-0 w-80 bg-white border-2 border-black rounded-2xl p-8 hover:shadow-xl transition-all duration-300 snap-start transform hover:scale-105">
+                  <div className="text-center mb-6">
+                    <svg className="w-12 h-12 text-black mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+                    </svg>
                   </div>
-                  <h3 className="font-urbanist font-light text-gray-900 text-xl mb-3">AI Chat Assistant</h3>
-                  <p className="text-gray-600 font-urbanist font-light text-sm leading-relaxed">
-                    Get instant answers and recommendations from our AI assistant for all your e-commerce questions and challenges.
-                  </p>
+                  <h3 className="font-urbanist font-light text-black text-lg text-center">AI Chat Assistant</h3>
                 </div>
 
                 {/* Store Integration */}
                 <div className="flex-shrink-0 w-80 bg-white border border-gray-200 rounded-2xl p-8 hover:shadow-xl transition-all duration-300 snap-start transform hover:scale-105 blur-sm hover:blur-none">
-                  <div className="flex justify-between items-start mb-6">
-                    <div className="w-16 h-16 bg-gradient-to-br from-orange-100 to-orange-200 rounded-2xl flex items-center justify-center">
-                      <svg className="w-8 h-8 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
-                      </svg>
-                    </div>
-                    <div className="w-6 h-6 border-2 border-gray-300 rounded-full"></div>
+                  <div className="text-center mb-6">
+                    <svg className="w-12 h-12 text-black mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+                    </svg>
                   </div>
-                  <h3 className="font-urbanist font-light text-gray-900 text-xl mb-3">Store Integration</h3>
-                  <p className="text-gray-600 font-urbanist font-light text-sm leading-relaxed">
-                    Seamlessly connect with Shopify, WordPress, WooCommerce, and other major e-commerce platforms.
-                  </p>
+                  <h3 className="font-urbanist font-light text-black text-lg text-center">Store Integration</h3>
                 </div>
 
                 {/* Performance Tracking */}
                 <div className="flex-shrink-0 w-80 bg-white border border-gray-200 rounded-2xl p-8 hover:shadow-xl transition-all duration-300 snap-start transform hover:scale-105 blur-sm hover:blur-none">
-                  <div className="flex justify-between items-start mb-6">
-                    <div className="w-16 h-16 bg-gradient-to-br from-pink-100 to-pink-200 rounded-2xl flex items-center justify-center">
-                      <svg className="w-8 h-8 text-pink-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-                      </svg>
-                    </div>
-                    <div className="w-6 h-6 border-2 border-gray-300 rounded-full"></div>
+                  <div className="text-center mb-6">
+                    <svg className="w-12 h-12 text-black mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                    </svg>
                   </div>
-                  <h3 className="font-urbanist font-light text-gray-900 text-xl mb-3">Performance Tracking</h3>
-                  <p className="text-gray-600 font-urbanist font-light text-sm leading-relaxed">
-                    Monitor real-time metrics, track conversions, and measure the impact of AI-driven optimizations.
-                  </p>
+                  <h3 className="font-urbanist font-light text-black text-lg text-center">Performance Tracking</h3>
                 </div>
               </div>
 
