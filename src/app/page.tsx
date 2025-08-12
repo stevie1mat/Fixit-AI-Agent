@@ -144,7 +144,7 @@ export default function Home() {
 
         {/* Main CTA */}
         <section className="text-center pb-16">
-          <Button asChild size="lg" className="text-lg px-8 py-4 bg-black hover:bg-gray-800 rounded-xl">
+          <Button asChild size="lg" className="text-lg px-8 py-4 bg-black hover:bg-gray-800 rounded-lg font-light">
             <a href="/login">Get Started — It's Free</a>
           </Button>
         </section>
