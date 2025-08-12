@@ -36,6 +36,7 @@ export function ChatBox() {
     })
 
     try {
+      console.log('Sending connections to API:', connections)
       const response = await fetch('/api/chat', {
         method: 'POST',
         headers: {

@@ -2,7 +2,7 @@
 
 import { useAppStore } from '@/lib/store'
 import { Button } from '@/components/ui/Button'
-import { X, Settings, History, Store, Plus } from 'lucide-react'
+import { X, Settings, History, Store, Plus, Trash2 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
 interface SidebarProps {
@@ -11,7 +11,7 @@ interface SidebarProps {
 }
 
 export function Sidebar({ isOpen, onClose }: SidebarProps) {
-  const { connections, messages } = useAppStore()
+  const { connections, messages, removeConnection } = useAppStore()
 
   return (
     <>
@@ -119,14 +119,25 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
                           </p>
                         </div>
                       </div>
-                      <div
-                        className={cn(
-                          'w-2 h-2 rounded-full',
-                          connection.isConnected
-                            ? 'bg-green-500'
-                            : 'bg-red-500'
-                        )}
-                      />
+                      <div className="flex items-center space-x-2">
+                        <div
+                          className={cn(
+                            'w-2 h-2 rounded-full',
+                            connection.isConnected
+                              ? 'bg-green-500'
+                              : 'bg-red-500'
+                          )}
+                        />
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => removeConnection(connection.id)}
+                          className="h-6 w-6 p-0 text-muted-foreground hover:text-destructive"
+                          title="Remove connection"
+                        >
+                          <Trash2 className="h-3 w-3" />
+                        </Button>
+                      </div>
                     </div>
                   ))}
                 </div>

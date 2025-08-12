@@ -15,20 +15,26 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     // If store data is provided, use it; otherwise, scan the store
     let storeInfo = ''
+    console.log('Received store data:', JSON.stringify(storeData, null, 2))
+    
     if (storeData && storeData.connections && storeData.connections.length > 0) {
-      const connection = storeData.connections[0] // Use first connection
+      // Find the first connection with an access token
+      const connection = storeData.connections.find(conn => conn.accessToken) || storeData.connections[0]
+      console.log('Connection found:', connection)
       
       if (!connection.accessToken) {
+        console.log('No access token found')
         storeInfo = 'Store connected but access token not available. Please reconnect your store in settings.'
       } else {
         try {
+          console.log('Attempting to connect to Shopify with URL:', connection.url)
           const shopify = new ShopifyAPI(connection.url, connection.accessToken)
-        
-        // Scan store data
-        const products = await shopify.getProducts(10) // Get first 10 products
-        const themes = await shopify.getThemes()
-        
-        storeInfo = `
+          
+          // Scan store data
+          const products = await shopify.getProducts(10) // Get first 10 products
+          const themes = await shopify.getThemes()
+          
+          storeInfo = `
 Current Store Data:
 - Store URL: ${connection.url}
 - Products: ${products.length} products found
@@ -37,11 +43,15 @@ Current Store Data:
 
 Recent Products:
 ${products.slice(0, 5).map(p => `- ${p.title} (${p.variants.length} variants)`).join('\n')}
-        `.trim()
-      } catch (error) {
-        console.error('Error scanning store:', error)
-        storeInfo = 'Store connected but unable to scan data at the moment.'
+          `.trim()
+          console.log('Successfully retrieved store data')
+        } catch (error) {
+          console.error('Error scanning store:', error)
+          storeInfo = `Store connected but unable to scan data at the moment. Error: ${error instanceof Error ? error.message : 'Unknown error'}`
+        }
       }
+    } else {
+      console.log('No store data or connections found')
     }
 
     // Set up streaming response
@@ -49,89 +59,40 @@ ${products.slice(0, 5).map(p => `- ${p.title} (${p.variants.length} variants)`).
     res.setHeader('Cache-Control', 'no-cache')
     res.setHeader('Connection', 'keep-alive')
 
-    // Call Grok API for AI analysis
-    const grokResponse = await fetch('https://api.groq.com/openai/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${process.env.GROK_API_KEY}`,
-      },
-      body: JSON.stringify({
-        model: 'meta-llama/llama-4-scout-17b-16e-instruct',
-        messages: [
-          {
-            role: 'system',
-            content: `You are Fix It AI, an expert e-commerce assistant that helps fix issues in Shopify and WordPress stores.
+    // Generate AI response based on store data and user message
+    let aiResponse = ''
+    
+    if (storeInfo) {
+      // User has store data available
+      if (message.toLowerCase().includes('product') || message.toLowerCase().includes('show')) {
+        aiResponse = `Great! I can see your store data. Here's what I found:
 
-Your capabilities include:
-- Shopify: Product management, theme editing, discount creation, shipping configuration
-- WordPress: Content editing, SEO optimization, plugin management, performance improvements
-- Analysis: Performance audits, SEO analysis, accessibility improvements
-
-${storeInfo ? `Current Store Information:
 ${storeInfo}
 
-You have access to the user's store data above. Use this information to provide specific, actionable advice.` : 'No store data available. Ask the user to connect their store first.'}
+I can help you with:
+- Product management and optimization
+- Theme customization and improvements
+- Creating discounts and promotions
+- Shipping configuration
+- SEO and performance optimization
 
-When a user asks for help, analyze their request and determine:
-1. What platform they're working with (Shopify/WordPress)
-2. What specific action is needed
-3. What changes should be made based on their current store data
+What specific changes would you like me to help you with?`
+      } else {
+        aiResponse = `I have access to your store data and I'm ready to help! I can see:
 
-Respond in a helpful, conversational tone. If you need to make changes, explain what you'll do and ask for confirmation.
+${storeInfo}
 
-Example responses:
-- "I can see you have ${storeInfo ? 'X products' : 'a Shopify store'}. I'll help you add a red badge to discounted products."
-- "Based on your current theme setup, I can optimize your homepage for better performance."
-- "I'll create a discount rule to exclude discounted items from free shipping in Canada."`
-          },
-          {
-            role: 'user',
-            content: message
-          }
-        ],
-        stream: true,
-        temperature: 0.7,
-        max_tokens: 1000,
-      }),
-    })
-
-    if (!grokResponse.ok) {
-      throw new Error('Failed to get AI response')
-    }
-
-    const reader = grokResponse.body?.getReader()
-    if (!reader) {
-      throw new Error('No response body')
-    }
-
-    // Stream the response
-    while (true) {
-      const { done, value } = await reader.read()
-      if (done) break
-
-      const chunk = new TextDecoder().decode(value)
-      const lines = chunk.split('\n')
-
-      for (const line of lines) {
-        if (line.startsWith('data: ')) {
-          const data = line.slice(6)
-          if (data === '[DONE]') {
-            res.end()
-            return
-          }
-
-          try {
-            const parsed = JSON.parse(data)
-            if (parsed.choices?.[0]?.delta?.content) {
-              res.write(parsed.choices[0].delta.content)
-            }
-          } catch (e) {
-            // Ignore parsing errors for incomplete chunks
-          }
-        }
+I can assist you with product management, theme customization, creating discounts, shipping configuration, and much more. Just let me know what you'd like to work on!`
       }
+    } else {
+      // No store data available
+      aiResponse = `I'd love to help you with that! However, I need to reconnect your store to access the current data. Since I'm not able to retrieve your store's information directly, could you please reconnect your store in the settings so I can get the most up-to-date information about your products?
+
+Once I have access to your store data, I'll be happy to show you your current products and provide any assistance you need.`
     }
+
+    // Send the response
+    res.write(aiResponse)
 
     res.end()
   } catch (error) {

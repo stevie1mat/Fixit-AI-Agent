@@ -2,7 +2,13 @@ import { type ClassValue, clsx } from "clsx"
 import { twMerge } from "tailwind-merge"
 
 export function cn(...inputs: ClassValue[]) {
-  return twMerge(clsx(inputs))
+  try {
+    return twMerge(clsx(inputs))
+  } catch (error) {
+    console.warn('Error in cn function:', error)
+    // Fallback to simple class concatenation
+    return inputs.filter(Boolean).join(' ')
+  }
 }
 
 export function formatDate(date: Date): string {

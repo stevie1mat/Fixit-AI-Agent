@@ -1,6 +1,18 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 
+// Helper function to generate UUID
+function generateId(): string {
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+    const r = Math.random() * 16 | 0
+    const v = c === 'x' ? r : (r & 0x3 | 0x8)
+    return v.toString(16)
+  })
+}
+
+// Check if we're in a browser environment
+const isBrowser = typeof window !== 'undefined'
+
 export interface Message {
   id: string
   role: 'user' | 'assistant'
@@ -57,7 +69,7 @@ export const useAppStore = create<AppState>()(
       addMessage: (message) => {
         const newMessage: Message = {
           ...message,
-          id: crypto.randomUUID(),
+          id: generateId(),
           timestamp: new Date(),
         }
         set((state) => ({
@@ -89,7 +101,7 @@ export const useAppStore = create<AppState>()(
       addConnection: (connection) => {
         const newConnection: StoreConnection = {
           ...connection,
-          id: crypto.randomUUID(),
+          id: generateId(),
         }
         set((state) => ({
           connections: [...state.connections, newConnection],
@@ -112,6 +124,32 @@ export const useAppStore = create<AppState>()(
         messages: state.messages,
         connections: state.connections,
       }),
+      // Add safe storage configuration
+      storage: isBrowser ? {
+        getItem: (name) => {
+          try {
+            const item = localStorage.getItem(name)
+            return item ? JSON.parse(item) : null
+          } catch (error) {
+            console.warn('Error reading from localStorage:', error)
+            return null
+          }
+        },
+        setItem: (name, value) => {
+          try {
+            localStorage.setItem(name, JSON.stringify(value))
+          } catch (error) {
+            console.warn('Error writing to localStorage:', error)
+          }
+        },
+        removeItem: (name) => {
+          try {
+            localStorage.removeItem(name)
+          } catch (error) {
+            console.warn('Error removing from localStorage:', error)
+          }
+        },
+      } : undefined,
     }
   )
 )
