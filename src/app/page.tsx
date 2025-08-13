@@ -92,7 +92,7 @@ export default function Home() {
             </p>
             
             {/* Main Headline */}
-            <h1 className="text-4xl md:text-6xl font-urbanist font-light text-gray-900 mb-6 leading-tight">
+            <h1 className="text-4xl md:text-6xl font-urbanist font-normal text-gray-900 mb-6 leading-tight">
               AI-Powered Store Optimization That Actually Works
             </h1>
             
