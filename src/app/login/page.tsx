@@ -53,13 +53,13 @@ export default function LoginPage() {
           <span className="text-lg font-urbanist font-light text-gray-900">/ hello@fixit.ai</span>
         </div>
         
-        <nav className="hidden md:flex items-center space-x-8">
+        <nav className="hidden md:flex items-center space-x-12">
           <a href="#features" className="text-gray-600 hover:text-gray-900">Features</a>
           <a href="#pricing" className="text-gray-600 hover:text-gray-900">Pricing</a>
           <a href="#support" className="text-gray-600 hover:text-gray-900">Support</a>
         </nav>
         
-        <div className="flex items-center space-x-4">
+        <div className="flex items-center space-x-6">
           <Button variant="outline" asChild className="border-black text-black hover:bg-black hover:text-white">
             <a href="/login">Book Demo</a>
           </Button>
