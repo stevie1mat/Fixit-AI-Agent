@@ -9,7 +9,7 @@ interface NavbarProps {
 
 export function Navbar({ onOpenLogin }: NavbarProps) {
   return (
-    <header className="flex items-center justify-between p-6 max-w-full mx-auto px-8">
+    <header className="flex items-center justify-between p-6 max-w-5xl mx-auto">
       <div className="flex items-center space-x-2">
         <div className="w-6 h-6 bg-black rounded-full flex items-center justify-center">
           <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
