@@ -4,14 +4,14 @@ import { useState, useRef, useEffect } from 'react'
 import { useAppStore } from '@/lib/store'
 import { useAuth } from '@/contexts/AuthContext'
 import { Button } from '@/components/ui/Button'
-import { Send, Loader2, Bot, User, Sparkles, Zap, Settings } from 'lucide-react'
+import { Send, Loader2, Bot, User, Sparkles, Zap, Settings, Trash2 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
 export function ChatBox() {
   const [input, setInput] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
   const messagesEndRef = useRef<HTMLDivElement>(null)
-  const { messages, addMessage, setLoading, isLoading, updateLastMessage, connections } = useAppStore()
+  const { messages, addMessage, setLoading, isLoading, updateLastMessage, connections, clearMessages } = useAppStore()
   const { user } = useAuth()
 
   const scrollToBottom = () => {
@@ -117,11 +117,26 @@ export function ChatBox() {
               </p>
             </div>
           </div>
-          <div className="flex items-center space-x-2">
+          <div className="flex items-center space-x-4">
             <div className="flex items-center space-x-1 text-sm text-gray-500">
               <Zap className="w-4 h-4" />
               <span className="font-urbanist font-light">AI Powered</span>
             </div>
+            {messages.length > 0 && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => {
+                  if (confirm('Are you sure you want to clear all messages? This action cannot be undone.')) {
+                    clearMessages()
+                  }
+                }}
+                className="text-gray-500 hover:text-red-500 hover:bg-red-50 transition-colors"
+                title="Clear chat"
+              >
+                <Trash2 className="w-4 h-4" />
+              </Button>
+            )}
           </div>
         </div>
       </div>
