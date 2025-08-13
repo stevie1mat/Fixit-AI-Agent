@@ -162,7 +162,13 @@ export default function Home() {
                   className="h-8 w-auto opacity-60"
                 />
               </div>
-              <div className="text-lg font-urbanist font-light text-gray-400">WordPress</div>
+              <div className="flex items-center">
+                <img 
+                  src="https://cdn.freebiesupply.com/images/large/2x/wordpress-logo-png-transparent.png" 
+                  alt="WordPress" 
+                  className="h-8 w-auto opacity-60"
+                />
+              </div>
               <div className="text-lg font-urbanist font-light text-gray-400">WooCommerce</div>
               <div className="text-lg font-urbanist font-light text-gray-400">Magento</div>
               <div className="text-lg font-urbanist font-light text-gray-400">BigCommerce</div>
