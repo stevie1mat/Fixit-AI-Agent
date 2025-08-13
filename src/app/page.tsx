@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { ChatBox } from '@/components/ChatBox'
 import { ChangePreview } from '@/components/ChangePreview'
 import { Sidebar } from '@/components/Sidebar'
+import { Navbar } from '@/components/Navbar'
 import { ProtectedRoute } from '@/components/ProtectedRoute'
 import { useAppStore } from '@/lib/store'
 import { useAuth } from '@/contexts/AuthContext'
@@ -34,36 +35,7 @@ export default function Home() {
     return (
       <div className="min-h-screen bg-white relative overflow-hidden">
         {/* Header */}
-        <header className="flex items-center justify-between p-6 max-w-6xl mx-auto">
-          <div className="flex items-center space-x-2">
-            <div className="w-6 h-6 bg-black rounded-full flex items-center justify-center">
-              <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
-              </svg>
-            </div>
-            <span className="text-lg font-urbanist font-light text-gray-900">/ hello@fixit.ai</span>
-          </div>
-          
-          <nav className="hidden md:flex items-center space-x-8">
-            <a href="#features" className="text-gray-600 hover:text-gray-900">Features</a>
-            <a href="#pricing" className="text-gray-600 hover:text-gray-900">Pricing</a>
-            <a href="#support" className="text-gray-600 hover:text-gray-900">Support</a>
-          </nav>
-          
-          <div className="flex items-center space-x-4">
-            <Button variant="outline" asChild className="border-black text-black hover:bg-black hover:text-white">
-              <a href="/login">Book Demo</a>
-            </Button>
-            <Button asChild className="bg-black hover:bg-gray-800">
-              <a href="/login">Get Started</a>
-            </Button>
-            <button className="md:hidden">
-              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-              </svg>
-            </button>
-          </div>
-        </header>
+        <Navbar />
 
         {/* Hero Section */}
         <main className="flex flex-col items-center justify-center px-6">
