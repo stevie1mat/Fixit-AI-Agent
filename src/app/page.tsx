@@ -313,7 +313,7 @@ export default function Home() {
         </section>
 
         {/* Pricing Section */}
-        <section className="py-24">
+        <section className="py-32">
           <div className="max-w-6xl mx-auto px-6">
             <div className="text-center mb-12">
               <h2 className="text-3xl md:text-4xl font-urbanist font-normal text-gray-900 mb-4">
