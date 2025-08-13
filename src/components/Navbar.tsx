@@ -5,7 +5,7 @@ import Link from 'next/link'
 
 export function Navbar() {
   return (
-    <header className="flex items-center justify-between p-6 max-w-6xl mx-auto">
+    <header className="flex items-center justify-between p-6 max-w-7xl mx-auto">
       <div className="flex items-center space-x-2">
         <div className="w-6 h-6 bg-black rounded-full flex items-center justify-center">
           <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -15,13 +15,13 @@ export function Navbar() {
         <span className="text-lg font-urbanist font-light text-gray-900">/ hello@fixit.ai</span>
       </div>
       
-      <nav className="hidden md:flex items-center space-x-12">
+      <nav className="hidden md:flex items-center space-x-16">
         <a href="#features" className="text-gray-600 hover:text-gray-900">Features</a>
         <a href="#pricing" className="text-gray-600 hover:text-gray-900">Pricing</a>
         <a href="#support" className="text-gray-600 hover:text-gray-900">Support</a>
       </nav>
       
-      <div className="flex items-center space-x-6">
+      <div className="flex items-center space-x-8">
         <Button variant="outline" asChild className="border-black text-black hover:bg-black hover:text-white">
           <Link href="/login">Book Demo</Link>
         </Button>
