@@ -9,7 +9,7 @@ interface NavbarProps {
 
 export function Navbar({ onOpenLogin }: NavbarProps) {
   return (
-    <header className="flex items-center justify-between p-6 max-w-6xl mx-auto">
+    <header className="flex items-center justify-between p-6 max-w-7xl mx-auto">
       <div className="flex items-center space-x-2">
         <div className="w-6 h-6 bg-black rounded-full flex items-center justify-center">
           <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -26,13 +26,6 @@ export function Navbar({ onOpenLogin }: NavbarProps) {
       </nav>
       
       <div className="flex items-center space-x-10">
-        <Button 
-          variant="outline" 
-          className="border-black text-black hover:bg-black hover:text-white"
-          onClick={onOpenLogin}
-        >
-          Book Demo
-        </Button>
         <Button 
           className="bg-black hover:bg-gray-800"
           onClick={onOpenLogin}
