@@ -41,7 +41,7 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen bg-white relative overflow-hidden">
+    <div className="min-h-screen bg-white relative overflow-hidden flex flex-col">
       {/* Header */}
       <header className="flex items-center justify-between p-6 max-w-6xl mx-auto">
         <div className="flex items-center space-x-2">
@@ -66,11 +66,11 @@ export default function LoginPage() {
         </div>
       </header>
 
-      {/* Main Content */}
-      <main className="flex flex-col items-center justify-center px-6">
+      {/* Main Content - Centered Vertically */}
+      <main className="flex-1 flex items-center justify-center px-6">
         <div className="text-center max-w-md mx-auto">
           {/* Subtitle */}
-          <p className="text-sm font-urbanist font-light text-gray-500 uppercase tracking-wider mb-4 mt-16">
+          <p className="text-sm font-urbanist font-light text-gray-500 uppercase tracking-wider mb-4">
             — ACCOUNT ACCESS —
           </p>
           
@@ -177,31 +177,7 @@ export default function LoginPage() {
         </div>
       </main>
 
-      {/* Benefits */}
-      <section className="max-w-4xl mx-auto px-6 pb-16 mt-16">
-        <div className="flex flex-col sm:flex-row items-center justify-center space-y-4 sm:space-y-0 sm:space-x-12">
-          <div className="flex items-center space-x-2">
-            <svg className="w-5 h-5 text-black" fill="currentColor" viewBox="0 0 20 20">
-              <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-            </svg>
-            <span className="font-urbanist font-light text-gray-700">Free Signup</span>
-          </div>
-          <div className="flex items-center space-x-2">
-            <svg className="w-5 h-5 text-black" fill="currentColor" viewBox="0 0 20 20">
-              <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-            </svg>
-            <span className="font-urbanist font-light text-gray-700">No Credit Card Required</span>
-          </div>
-          <div className="flex items-center space-x-2">
-            <svg className="w-5 h-5 text-black" fill="currentColor" viewBox="0 0 20 20">
-              <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-            </svg>
-            <span className="font-urbanist font-light text-gray-700">Cancel Anytime</span>
-          </div>
-        </div>
-      </section>
-
-      {/* Partner Logos */}
+      {/* Partner Logos Footer - At Bottom */}
       <footer className="border-t border-gray-200 py-12">
         <div className="max-w-7xl mx-auto px-6">
           <div className="flex flex-wrap justify-center items-center space-x-8 md:space-x-12">
