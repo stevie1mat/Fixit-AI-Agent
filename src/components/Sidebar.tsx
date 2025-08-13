@@ -3,7 +3,7 @@
 import { useAppStore } from '@/lib/store'
 import { useAuth } from '@/contexts/AuthContext'
 import { Button } from '@/components/ui/Button'
-import { X, Settings, History, Store, Plus, Trash2 } from 'lucide-react'
+import { X, Settings, History, Store, Plus, Trash2, Sparkles, Zap, Activity, Link, Shield } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
 interface SidebarProps {
@@ -44,60 +44,68 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
       {/* Sidebar */}
       <div
         className={cn(
-          'fixed inset-y-0 left-0 z-50 w-80 bg-card border-r transform transition-transform duration-200 ease-in-out lg:translate-x-0 lg:static lg:inset-0',
+          'fixed inset-y-0 left-0 z-50 w-80 bg-white border-r border-gray-200 transform transition-transform duration-200 ease-in-out lg:translate-x-0 lg:static lg:inset-0',
           isOpen ? 'translate-x-0' : '-translate-x-full'
         )}
       >
         <div className="flex flex-col h-full">
           {/* Header */}
-          <div className="flex items-center justify-between p-4 border-b">
-            <h2 className="text-lg font-semibold">Fix It AI</h2>
+          <div className="flex items-center justify-between p-6 border-b border-gray-200">
+            <div className="flex items-center space-x-3">
+              <div className="w-8 h-8 bg-black rounded-full flex items-center justify-center">
+                <Sparkles className="w-4 h-4 text-white" />
+              </div>
+              <div>
+                <h2 className="text-lg font-urbanist font-normal text-gray-900">Fix It AI</h2>
+                <p className="text-xs font-urbanist font-light text-gray-600">AI Assistant</p>
+              </div>
+            </div>
             <Button
               variant="ghost"
               size="sm"
               onClick={onClose}
-              className="lg:hidden"
+              className="lg:hidden hover:bg-gray-100"
             >
-              <X className="h-4 w-4" />
+              <X className="h-5 w-5" />
             </Button>
           </div>
 
           {/* Content */}
           <div className="flex-1 overflow-y-auto">
             {/* Quick Actions */}
-            <div className="p-4 border-b">
-              <h3 className="font-medium mb-3">Quick Actions</h3>
-              <div className="space-y-2">
+            <div className="p-6 border-b border-gray-200">
+              <h3 className="font-medium text-gray-900 mb-4 font-urbanist">Quick Actions</h3>
+              <div className="space-y-3">
                 <Button 
                   variant="outline" 
-                  size="sm" 
-                  className="w-full justify-start"
+                  size="lg" 
+                  className="w-full justify-start border-gray-200 hover:border-gray-300 hover:bg-gray-50 font-urbanist font-light"
                   asChild
                 >
                   <a href="/settings" onClick={onClose}>
-                    <Store className="h-4 w-4 mr-2" />
+                    <Link className="h-4 w-4 mr-3" />
                     Connect Store
                   </a>
                 </Button>
                 <Button 
                   variant="outline" 
-                  size="sm" 
-                  className="w-full justify-start"
+                  size="lg" 
+                  className="w-full justify-start border-gray-200 hover:border-gray-300 hover:bg-gray-50 font-urbanist font-light"
                   asChild
                 >
                   <a href="/settings" onClick={onClose}>
-                    <Settings className="h-4 w-4 mr-2" />
+                    <Settings className="h-4 w-4 mr-3" />
                     Settings
                   </a>
                 </Button>
                 <Button 
                   variant="outline" 
-                  size="sm" 
-                  className="w-full justify-start"
+                  size="lg" 
+                  className="w-full justify-start border-gray-200 hover:border-gray-300 hover:bg-gray-50 font-urbanist font-light"
                   asChild
                 >
                   <a href="/logs" onClick={onClose}>
-                    <History className="h-4 w-4 mr-2" />
+                    <History className="h-4 w-4 mr-3" />
                     View Logs
                   </a>
                 </Button>
@@ -105,10 +113,10 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
             </div>
 
             {/* Store Connections */}
-            <div className="p-4 border-b">
-              <div className="flex items-center justify-between mb-3">
-                <h3 className="font-medium">Store Connections</h3>
-                <Button variant="ghost" size="sm" asChild>
+            <div className="p-6 border-b border-gray-200">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="font-medium text-gray-900 font-urbanist">Store Connections</h3>
+                <Button variant="ghost" size="sm" asChild className="hover:bg-gray-100">
                   <a href="/settings" onClick={onClose}>
                     <Plus className="h-4 w-4" />
                   </a>
@@ -116,45 +124,59 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
               </div>
               
               {connections.length === 0 ? (
-                <p className="text-sm text-muted-foreground">
-                  No stores connected yet.
-                </p>
+                <div className="text-center py-8">
+                  <div className="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-3">
+                    <Store className="h-6 w-6 text-gray-400" />
+                  </div>
+                  <p className="text-sm font-urbanist font-light text-gray-600 mb-3">
+                    No stores connected yet.
+                  </p>
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    className="font-urbanist font-light"
+                    asChild
+                  >
+                    <a href="/settings" onClick={onClose}>
+                      Connect Your First Store
+                    </a>
+                  </Button>
+                </div>
               ) : (
-                <div className="space-y-2">
+                <div className="space-y-3">
                   {connections.map((connection) => (
                     <div
                       key={connection.id}
-                      className="flex items-center justify-between p-2 rounded-md bg-muted/50"
+                      className="p-4 rounded-lg border border-gray-200 bg-gray-50 hover:bg-white hover:border-gray-300 transition-all"
                     >
-                      <div className="flex items-center space-x-2">
-                        <Store className="h-4 w-4 text-muted-foreground" />
-                        <div>
-                          <p className="text-sm font-medium capitalize">
-                            {connection.type}
-                          </p>
-                          <p className="text-xs text-muted-foreground">
-                            {connection.url}
-                          </p>
-                        </div>
-                      </div>
-                      <div className="flex items-center space-x-2">
-                        <div
-                          className={cn(
+                      <div className="flex items-center justify-between mb-2">
+                        <div className="flex items-center space-x-2">
+                          <div className={cn(
                             'w-2 h-2 rounded-full',
-                            connection.isConnected
-                              ? 'bg-green-500'
-                              : 'bg-red-500'
-                          )}
-                        />
+                            connection.isConnected ? 'bg-green-500' : 'bg-red-500'
+                          )} />
+                          <span className="text-xs font-medium text-gray-600 uppercase tracking-wide">
+                            {connection.type}
+                          </span>
+                        </div>
                         <Button
                           variant="ghost"
                           size="sm"
                           onClick={() => handleRemoveConnection(connection.id)}
-                          className="h-6 w-6 p-0 text-muted-foreground hover:text-destructive"
+                          className="h-6 w-6 p-0 text-gray-400 hover:text-red-500 hover:bg-red-50"
                           title="Remove connection"
                         >
                           <Trash2 className="h-3 w-3" />
                         </Button>
+                      </div>
+                      <p className="text-sm font-urbanist font-light text-gray-700 truncate">
+                        {connection.url}
+                      </p>
+                      <div className="flex items-center space-x-1 mt-2">
+                        <Shield className="h-3 w-3 text-green-500" />
+                        <span className="text-xs font-urbanist font-light text-green-600">
+                          {connection.isConnected ? 'Connected' : 'Disconnected'}
+                        </span>
                       </div>
                     </div>
                   ))}
@@ -163,28 +185,42 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
             </div>
 
             {/* Recent Messages */}
-            <div className="p-4">
-              <h3 className="font-medium mb-3">Recent Activity</h3>
+            <div className="p-6">
+              <h3 className="font-medium text-gray-900 mb-4 font-urbanist">Recent Activity</h3>
               
               {messages.length === 0 ? (
-                <p className="text-sm text-muted-foreground">
-                  No recent activity.
-                </p>
+                <div className="text-center py-8">
+                  <div className="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-3">
+                    <Activity className="h-6 w-6 text-gray-400" />
+                  </div>
+                  <p className="text-sm font-urbanist font-light text-gray-600">
+                    No recent activity.
+                  </p>
+                </div>
               ) : (
-                <div className="space-y-2">
+                <div className="space-y-3">
                   {messages.slice(-5).map((message) => (
                     <div
                       key={message.id}
-                      className="p-2 rounded-md bg-muted/50"
+                      className="p-4 rounded-lg border border-gray-200 bg-gray-50 hover:bg-white hover:border-gray-300 transition-all"
                     >
-                      <p className="text-sm font-medium">
-                        {message.role === 'user' ? 'You' : 'AI'}
-                      </p>
-                      <p className="text-xs text-muted-foreground truncate">
+                      <div className="flex items-center space-x-2 mb-2">
+                        <div className={cn(
+                          'w-2 h-2 rounded-full',
+                          message.role === 'user' ? 'bg-blue-500' : 'bg-black'
+                        )} />
+                        <p className="text-sm font-medium text-gray-900 font-urbanist">
+                          {message.role === 'user' ? 'You' : 'AI Assistant'}
+                        </p>
+                      </div>
+                      <p className="text-sm font-urbanist font-light text-gray-700 line-clamp-2 mb-2">
                         {message.content}
                       </p>
-                      <p className="text-xs text-muted-foreground mt-1">
-                        {new Date(message.timestamp).toLocaleTimeString()}
+                      <p className="text-xs font-urbanist font-light text-gray-500">
+                        {new Date(message.timestamp).toLocaleTimeString([], { 
+                          hour: '2-digit', 
+                          minute: '2-digit' 
+                        })}
                       </p>
                     </div>
                   ))}
@@ -194,8 +230,12 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
           </div>
 
           {/* Footer */}
-          <div className="p-4 border-t">
-            <div className="text-xs text-muted-foreground text-center">
+          <div className="p-6 border-t border-gray-200 bg-gray-50">
+            <div className="flex items-center justify-center space-x-2 mb-3">
+              <Zap className="h-4 w-4 text-gray-400" />
+              <span className="text-xs font-urbanist font-light text-gray-500">AI Powered</span>
+            </div>
+            <div className="text-xs font-urbanist font-light text-gray-500 text-center">
               Fix It AI v1.0.0
             </div>
           </div>
