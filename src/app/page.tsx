@@ -293,7 +293,7 @@ export default function Home() {
                     {[...Array(5)].map((_, i) => (
                       <svg key={i} className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
                         <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-                      </svg>
+              </svg>
                     ))}
                   </div>
                 </div>
@@ -420,8 +420,8 @@ export default function Home() {
                   </li>
                   <li className="flex items-center">
                     <svg className="w-5 h-5 text-green-500 mr-3" fill="currentColor" viewBox="0 0 20 20">
-                      <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                    </svg>
+                <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+              </svg>
                     <span className="font-urbanist font-light text-gray-700">API Access</span>
                   </li>
                 </ul>
@@ -536,7 +536,7 @@ export default function Home() {
                   <h3 className="text-lg font-medium text-gray-900">Can I cancel anytime?</h3>
                   <svg id="faq-icon-4" className="w-5 h-5 text-gray-500 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                  </svg>
+              </svg>
                 </button>
                 <div id="faq-4" className="hidden px-6 pb-4">
                   <p className="font-urbanist font-light text-gray-700">
@@ -635,19 +635,19 @@ export default function Home() {
               <div className="flex flex-col items-center">
                 <p className="font-urbanist font-light text-gray-600 mb-6">Trusted by leading e-commerce platforms</p>
                 <div className="flex flex-wrap justify-center items-center space-x-16 md:space-x-24">
-                  <div className="flex items-center">
-                    <img 
-                      src="https://upload.wikimedia.org/wikipedia/commons/thumb/0/0e/Shopify_logo_2018.svg/2560px-Shopify_logo_2018.svg.png" 
-                      alt="Shopify" 
-                      className="h-8 w-auto opacity-60"
-                    />
-                  </div>
-                  <div className="flex items-center">
-                    <img 
+              <div className="flex items-center">
+                <img 
+                  src="https://upload.wikimedia.org/wikipedia/commons/thumb/0/0e/Shopify_logo_2018.svg/2560px-Shopify_logo_2018.svg.png" 
+                  alt="Shopify" 
+                  className="h-8 w-auto opacity-60"
+                />
+              </div>
+              <div className="flex items-center">
+                <img 
                       src="https://pngimg.com/d/wordpress_PNG7.png" 
-                      alt="WordPress" 
-                      className="h-8 w-auto opacity-60"
-                    />
+                  alt="WordPress" 
+                  className="h-8 w-auto opacity-60"
+                />
                   </div>
                   <div className="flex items-center">
                     <img 
@@ -733,9 +733,9 @@ export default function Home() {
                 <LogOut className="h-4 w-4 mr-2" />
                 Sign Out
               </Button>
+              </div>
             </div>
           </div>
-        </div>
 
         {/* Main Content Area */}
         <div className="flex-1 flex overflow-hidden">

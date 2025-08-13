@@ -299,8 +299,9 @@ export function ChatBox() {
           </div>
           <Button
             type="submit"
+            variant="outline"
             size="lg"
-            className="bg-black hover:bg-gray-800 text-white rounded-2xl px-6 py-4 font-urbanist font-light transition-all"
+            className="border-gray-300 hover:border-gray-400 hover:bg-gray-50 text-gray-700 rounded-2xl px-6 py-4 font-urbanist font-light transition-all"
             disabled={!input.trim() || isSubmitting}
           >
             {isSubmitting ? (
