@@ -301,7 +301,7 @@ export function ChatBox() {
             type="submit"
             variant="outline"
             size="lg"
-            className="border-gray-300 hover:border-gray-400 hover:bg-gray-50 text-gray-700 rounded-2xl px-6 py-4 font-urbanist font-light transition-all"
+            className="border-gray-300 hover:border-gray-400 hover:bg-gray-50 text-gray-700 rounded-2xl px-6 py-4 font-urbanist font-light transition-all mt-1"
             disabled={!input.trim() || isSubmitting}
           >
             {isSubmitting ? (

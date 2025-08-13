@@ -3,7 +3,7 @@
 import { useAppStore } from '@/lib/store'
 import { useAuth } from '@/contexts/AuthContext'
 import { Button } from '@/components/ui/Button'
-import { X, Settings, History, Store, Plus, Trash2, Sparkles, Zap, Link, Shield } from 'lucide-react'
+import { X, Settings, History, Store, Plus, Trash2, Sparkles, Zap, Link, Shield, Brain } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
 interface SidebarProps {
@@ -107,6 +107,17 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
                   <a href="/logs" onClick={onClose}>
                     <History className="h-4 w-4 mr-3" />
                     View Logs
+                  </a>
+                </Button>
+                <Button 
+                  variant="outline" 
+                  size="lg" 
+                  className="w-full justify-start border-gray-200 hover:border-gray-300 hover:bg-gray-50 font-urbanist font-light"
+                  asChild
+                >
+                  <a href="/ai-training" onClick={onClose}>
+                    <Brain className="h-4 w-4 mr-3" />
+                    AI Training
                   </a>
                 </Button>
               </div>

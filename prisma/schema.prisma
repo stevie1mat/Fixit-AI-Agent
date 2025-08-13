@@ -16,12 +16,12 @@ model ChangeLog {
   action      String   // "shopify" | "wordpress" | "lighthouse"
   operation   String   // "scan" | "apply" | "rollback"
   description String
-  beforeState Json?    // Store the state before changes
-  afterState  Json?    // Store the state after changes
+  beforeState String?  // Store the state before changes (JSON string)
+  afterState  String?  // Store the state after changes (JSON string)
   status      String   // "pending" | "success" | "failed"
   error       String?  // Error message if failed
   userId      String?  // For future user management
-  metadata    Json?    // Additional metadata
+  metadata    String?  // Additional metadata (JSON string)
 }
 
 model StoreConnection {
@@ -38,7 +38,58 @@ model StoreConnection {
 
 model ChatSession {
   id        String   @id @default(cuid())
-  messages  Json     // Array of chat messages
+  messages  String   // Array of chat messages (JSON string)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+}
+
+// AI Fine-tuning and Context Management Models
+model AITrainingExample {
+  id          String   @id @default(cuid())
+  input       String   // User's question/problem
+  output      String   // AI's response/solution
+  context     String   // Store context when example was created (JSON string)
+  category    String   // "product_optimization" | "theme_optimization" | "seo_optimization" | "performance"
+  storeType   String   // "shopify" | "wordpress"
+  storeUrl    String?
+  userId      String?
+  createdAt   DateTime @default(now())
+  isVerified  Boolean  @default(false) // Whether this example was verified as good
+  rating      Int?     // User rating 1-5
+}
+
+model AIContextWindow {
+  id              String   @id @default(cuid())
+  userId          String
+  storeConnectionId String?
+  recentMessages  String   // Array of recent conversation messages (JSON string)
+  currentIssues   String   // Array of current store issues (JSON string)
+  optimizationHistory String // Array of applied optimizations (JSON string)
+  storeData       String?  // Current store state (JSON string)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+}
+
+model OptimizationPattern {
+  id          String   @id @default(cuid())
+  pattern     String   // Pattern name/identifier
+  description String   // Pattern description
+  category    String   // "product" | "theme" | "seo" | "performance"
+  storeType   String   // "shopify" | "wordpress"
+  conditions  String   // Conditions when this pattern applies (JSON string)
+  solution    String   // Solution template (JSON string)
+  successRate Float    // Success rate percentage
+  usageCount  Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model StoreAnalysis {
+  id          String   @id @default(cuid())
+  storeConnectionId String
+  analysisType String  // "performance" | "seo" | "products" | "themes"
+  data        String   // Analysis results (JSON string)
+  issues      String   // Found issues (JSON string)
+  recommendations String // AI recommendations (JSON string)
+  createdAt   DateTime @default(now())
 }
