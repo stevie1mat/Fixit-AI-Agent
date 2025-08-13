@@ -52,7 +52,7 @@ export default function Home() {
           <div className="absolute top-1/2 right-1/4 w-64 h-px bg-gradient-to-l from-transparent via-gray-100 to-transparent transform rotate-12"></div>
         </div>
         {/* Header */}
-        <header className="flex items-center justify-between p-6 max-w-7xl mx-auto">
+        <header className="flex items-center justify-between p-6 max-w-4xl mx-auto">
           <div className="flex items-center space-x-2">
             <div className="w-6 h-6 bg-black rounded-full flex items-center justify-center">
               <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -85,7 +85,7 @@ export default function Home() {
 
         {/* Hero Section */}
         <main className="flex flex-col items-center justify-center px-6">
-          <div className="text-center max-w-4xl mb-8">
+          <div className="text-center max-w-4xl mx-auto mb-8">
             {/* Subtitle */}
             <p className="text-sm font-urbanist font-light text-gray-500 uppercase tracking-wider mb-4 mt-28">
               — E-COMMERCE OPTIMIZATION —
