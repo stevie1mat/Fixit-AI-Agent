@@ -692,70 +692,50 @@ export default function Home() {
 
   // Show main app for authenticated users
   return (
-    <div className="flex h-screen bg-background">
+    <div className="flex h-screen bg-gray-50">
       {/* Sidebar */}
       <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
       
       {/* Main Content */}
       <div className="flex-1 flex flex-col">
-        {/* Header */}
-        <header className="border-b bg-card">
-          <div className="flex items-center justify-between p-4">
+        {/* Top Navigation Bar */}
+        <div className="bg-white border-b border-gray-200 px-6 py-3">
+          <div className="flex items-center justify-between">
             <div className="flex items-center space-x-4">
               <Button
                 variant="ghost"
                 size="sm"
                 onClick={() => setSidebarOpen(true)}
-                className="lg:hidden"
+                className="lg:hidden hover:bg-gray-100"
               >
                 <Settings className="h-5 w-5" />
               </Button>
-              <div>
-                <h1 className="text-xl font-bold">Fix It AI</h1>
-                <p className="text-sm text-muted-foreground">
-                  AI-powered e-commerce assistant
-                </p>
-              </div>
             </div>
             
-            <div className="flex items-center space-x-2">
-              <div className="flex items-center space-x-2 text-sm text-muted-foreground">
+            <div className="flex items-center space-x-4">
+              <div className="flex items-center space-x-2 text-sm text-gray-600">
                 <User className="h-4 w-4" />
-                <span>{user?.email}</span>
+                <span className="font-urbanist font-light">{user?.email}</span>
               </div>
-              <Button variant="ghost" size="sm" asChild>
+              <Button variant="ghost" size="sm" asChild className="hover:bg-gray-100">
                 <a href="/settings">
                   <Settings className="h-4 w-4 mr-2" />
                   Settings
                 </a>
               </Button>
-              <Button variant="ghost" size="sm" asChild>
+              <Button variant="ghost" size="sm" asChild className="hover:bg-gray-100">
                 <a href="/logs">
                   <History className="h-4 w-4 mr-2" />
                   Logs
                 </a>
               </Button>
-              <Button variant="ghost" size="sm" onClick={signOut}>
+              <Button variant="ghost" size="sm" onClick={signOut} className="hover:bg-gray-100">
                 <LogOut className="h-4 w-4 mr-2" />
                 Sign Out
               </Button>
             </div>
           </div>
-        </header>
-
-        {/* Connection Status */}
-        {connections.length > 0 && (
-          <div className="border-b bg-muted/50">
-            <div className="p-4">
-              <div className="flex items-center space-x-2">
-                <Zap className="h-4 w-4 text-green-500" />
-                <span className="text-sm font-medium">
-                  Connected to {connections.length} store{connections.length > 1 ? 's' : ''}
-                </span>
-              </div>
-            </div>
-          </div>
-        )}
+        </div>
 
         {/* Main Content Area */}
         <div className="flex-1 flex overflow-hidden">
@@ -766,7 +746,7 @@ export default function Home() {
           
           {/* Preview Panel */}
           {currentPreview && (
-            <div className="w-96 border-l bg-card">
+            <div className="w-96 border-l border-gray-200 bg-white">
               <ChangePreview preview={currentPreview} />
             </div>
           )}
