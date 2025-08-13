@@ -449,9 +449,9 @@ export default function Home() {
             </div>
             
             <div className="space-y-4">
-              <div className="bg-white rounded-lg shadow-sm overflow-hidden">
+              <div className="overflow-hidden">
                 <button 
-                  className="w-full px-6 py-4 text-left flex items-center justify-between hover:bg-gray-50 transition-colors"
+                  className="w-full px-6 py-4 text-left flex items-center justify-between hover:bg-gray-50 transition-colors rounded-lg"
                   onClick={() => {
                     const content = document.getElementById('faq-1');
                     const icon = document.getElementById('faq-icon-1');
@@ -473,9 +473,9 @@ export default function Home() {
                 </div>
               </div>
               
-              <div className="bg-white rounded-lg shadow-sm overflow-hidden">
+              <div className="overflow-hidden">
                 <button 
-                  className="w-full px-6 py-4 text-left flex items-center justify-between hover:bg-gray-50 transition-colors"
+                  className="w-full px-6 py-4 text-left flex items-center justify-between hover:bg-gray-50 transition-colors rounded-lg"
                   onClick={() => {
                     const content = document.getElementById('faq-2');
                     const icon = document.getElementById('faq-icon-2');
@@ -497,9 +497,9 @@ export default function Home() {
                 </div>
               </div>
               
-              <div className="bg-white rounded-lg shadow-sm overflow-hidden">
+              <div className="overflow-hidden">
                 <button 
-                  className="w-full px-6 py-4 text-left flex items-center justify-between hover:bg-gray-50 transition-colors"
+                  className="w-full px-6 py-4 text-left flex items-center justify-between hover:bg-gray-50 transition-colors rounded-lg"
                   onClick={() => {
                     const content = document.getElementById('faq-3');
                     const icon = document.getElementById('faq-icon-3');
@@ -521,9 +521,9 @@ export default function Home() {
                 </div>
               </div>
               
-              <div className="bg-white rounded-lg shadow-sm overflow-hidden">
+              <div className="overflow-hidden">
                 <button 
-                  className="w-full px-6 py-4 text-left flex items-center justify-between hover:bg-gray-50 transition-colors"
+                  className="w-full px-6 py-4 text-left flex items-center justify-between hover:bg-gray-50 transition-colors rounded-lg"
                   onClick={() => {
                     const content = document.getElementById('faq-4');
                     const icon = document.getElementById('faq-icon-4');
