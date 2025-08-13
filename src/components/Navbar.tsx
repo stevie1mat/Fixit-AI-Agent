@@ -10,12 +10,6 @@ interface NavbarProps {
 export function Navbar({ onOpenLogin }: NavbarProps) {
   return (
     <header className="flex items-center justify-between p-6 max-w-7xl mx-auto">
-      <nav className="hidden md:flex items-center space-x-8">
-        <a href="#features" className="text-gray-600 hover:text-gray-900">Features</a>
-        <a href="#pricing" className="text-gray-600 hover:text-gray-900">Pricing</a>
-        <a href="#support" className="text-gray-600 hover:text-gray-900">Support</a>
-      </nav>
-      
       <div className="flex items-center space-x-2">
         <div className="w-6 h-6 bg-black rounded-full flex items-center justify-center">
           <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -24,6 +18,12 @@ export function Navbar({ onOpenLogin }: NavbarProps) {
         </div>
         <span className="text-lg font-urbanist font-light text-gray-900">/ hello@fixit.ai</span>
       </div>
+      
+      <nav className="hidden md:flex items-center space-x-8">
+        <a href="#features" className="text-gray-600 hover:text-gray-900">Features</a>
+        <a href="#pricing" className="text-gray-600 hover:text-gray-900">Pricing</a>
+        <a href="#support" className="text-gray-600 hover:text-gray-900">Support</a>
+      </nav>
       
       <div className="flex items-center space-x-4">
         <Button 
