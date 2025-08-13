@@ -3,7 +3,7 @@
 import { useAppStore } from '@/lib/store'
 import { useAuth } from '@/contexts/AuthContext'
 import { Button } from '@/components/ui/Button'
-import { X, Settings, History, Store, Plus, Trash2, Sparkles, Zap, Activity, Link, Shield } from 'lucide-react'
+import { X, Settings, History, Store, Plus, Trash2, Sparkles, Zap, Link, Shield } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
 interface SidebarProps {
@@ -12,7 +12,7 @@ interface SidebarProps {
 }
 
 export function Sidebar({ isOpen, onClose }: SidebarProps) {
-  const { connections, messages, removeConnection } = useAppStore()
+  const { connections, removeConnection } = useAppStore()
   const { user } = useAuth()
 
   const handleRemoveConnection = async (connectionId: string) => {
@@ -184,49 +184,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
               )}
             </div>
 
-            {/* Recent Messages */}
-            <div className="p-6">
-              <h3 className="font-medium text-gray-900 mb-4 font-urbanist">Recent Activity</h3>
-              
-              {messages.length === 0 ? (
-                <div className="text-center py-8">
-                  <div className="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-3">
-                    <Activity className="h-6 w-6 text-gray-400" />
-                  </div>
-                  <p className="text-sm font-urbanist font-light text-gray-600">
-                    No recent activity.
-                  </p>
-                </div>
-              ) : (
-                <div className="space-y-3">
-                  {messages.slice(-5).map((message) => (
-                    <div
-                      key={message.id}
-                      className="p-4 rounded-lg border border-gray-200 bg-gray-50 hover:bg-white hover:border-gray-300 transition-all"
-                    >
-                      <div className="flex items-center space-x-2 mb-2">
-                        <div className={cn(
-                          'w-2 h-2 rounded-full',
-                          message.role === 'user' ? 'bg-blue-500' : 'bg-black'
-                        )} />
-                        <p className="text-sm font-medium text-gray-900 font-urbanist">
-                          {message.role === 'user' ? 'You' : 'AI Assistant'}
-                        </p>
-                      </div>
-                      <p className="text-sm font-urbanist font-light text-gray-700 line-clamp-2 mb-2">
-                        {message.content}
-                      </p>
-                      <p className="text-xs font-urbanist font-light text-gray-500">
-                        {new Date(message.timestamp).toLocaleTimeString([], { 
-                          hour: '2-digit', 
-                          minute: '2-digit' 
-                        })}
-                      </p>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
+
           </div>
 
           {/* Footer */}
