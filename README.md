@@ -2,40 +2,42 @@
 
 An AI-powered assistant that connects to Shopify & WordPress to scan, fix, and verify issues in e-commerce sites. Understand user commands in plain language, suggest fixes with preview diffs, and apply them safely.
 
-## 🚀 Features
+![Fix It AI Homepage](public/homepage.png)
 
-### 🤖 AI-Powered Chat Interface
+## Features
+
+### AI-Powered Chat Interface
 - **Natural Language Processing**: Describe issues in plain English
 - **Streaming Responses**: Real-time AI responses using Grok API
 - **Context Awareness**: AI understands your store structure and suggests relevant fixes
 
-### 🛍️ Shopify Integration
+### Shopify Integration
 - **Product Management**: Update product tags, descriptions, and pricing
 - **Theme Editing**: Modify theme files and assets
 - **Discount Creation**: Set up automatic discounts and promotions
 - **Shipping Configuration**: Manage shipping zones and rates
 - **Metafields**: Customize product and collection metadata
 
-### 📝 WordPress Integration
+### WordPress Integration
 - **Content Management**: Update posts, pages, and custom post types
 - **SEO Optimization**: Improve meta descriptions, titles, and structured data
 - **Plugin Management**: Activate/deactivate plugins safely
 - **Theme Customization**: Modify theme files and options
 - **Performance**: Optimize site speed and performance
 
-### 🔍 Smart Analysis
+### Smart Analysis
 - **Lighthouse Audits**: Performance, accessibility, and SEO analysis
 - **Store Scanning**: Comprehensive analysis of your store structure
 - **Issue Detection**: Identify common e-commerce problems
 - **Recommendations**: AI-powered suggestions for improvements
 
-### 🛡️ Safety & Control
+### Safety & Control
 - **Preview Changes**: See exactly what will be changed before applying
 - **Rollback System**: Revert any changes with one click
 - **Change Logging**: Complete audit trail of all modifications
 - **Dry Run Mode**: Test changes without affecting your live store
 
-## 📋 Example Commands
+## Example Commands
 
 ### Shopify
 - "Make all discounted products show a red badge"
@@ -51,7 +53,7 @@ An AI-powered assistant that connects to Shopify & WordPress to scan, fix, and v
 - "Optimize images for better performance"
 - "Update the contact page with new information"
 
-## 🛠️ Installation
+## Installation
 
 ### Prerequisites
 - Node.js 18+ 
@@ -109,7 +111,7 @@ An AI-powered assistant that connects to Shopify & WordPress to scan, fix, and v
 6. **Open your browser**
    Navigate to [http://localhost:3000](http://localhost:3000)
 
-## 🔧 Configuration
+## Configuration
 
 ### Shopify Setup
 1. Create a private app in your Shopify admin
@@ -134,7 +136,7 @@ An AI-powered assistant that connects to Shopify & WordPress to scan, fix, and v
 2. Get your API key from the dashboard
 3. Add to your `.env.local`
 
-## 📁 Project Structure
+## Project Structure
 
 ```
 fixit-ai/
@@ -164,7 +166,7 @@ fixit-ai/
 └── package.json
 ```
 
-## 🔌 API Endpoints
+## API Endpoints
 
 ### Chat
 - `POST /api/chat` - Send messages to AI assistant
@@ -183,7 +185,7 @@ fixit-ai/
 - `GET /api/logs` - Get change history
 - `POST /api/logs` - Log new changes
 
-## 🎨 Customization
+## Customization
 
 ### Adding New AI Models
 The application supports multiple AI providers. To add a new model:
@@ -208,7 +210,7 @@ Create custom actions by:
 3. Creating platform-specific handlers
 4. Adding UI components for new features
 
-## 🚀 Deployment
+## Deployment
 
 ### Vercel (Recommended)
 1. Connect your GitHub repository to Vercel
@@ -230,7 +232,7 @@ docker run -p 3000:3000 fixit-ai
 3. Set up a reverse proxy (nginx recommended)
 4. Configure SSL certificates
 
-## 🔒 Security
+## Security
 
 ### API Key Management
 - Store all API keys in environment variables
@@ -250,7 +252,7 @@ docker run -p 3000:3000 fixit-ai
 - Audit logging for all actions
 - Rate limiting on API endpoints
 
-## 🤝 Contributing
+## Contributing
 
 1. Fork the repository
 2. Create a feature branch: `git checkout -b feature-name`
@@ -260,18 +262,18 @@ docker run -p 3000:3000 fixit-ai
 6. Push to the branch: `git push origin feature-name`
 7. Submit a pull request
 
-## 📄 License
+## License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
-## 🆘 Support
+## Support
 
 - **Documentation**: [docs.fixit-ai.com](https://docs.fixit-ai.com)
 - **Issues**: [GitHub Issues](https://github.com/your-org/fixit-ai/issues)
 - **Discord**: [Join our community](https://discord.gg/fixit-ai)
 - **Email**: support@fixit-ai.com
 
-## 🙏 Acknowledgments
+## Acknowledgments
 
 - Built with [Next.js](https://nextjs.org/)
 - AI powered by [Grok](https://grok.x.ai/)
@@ -281,4 +283,4 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ---
 
-**Fix It AI** - Making e-commerce management effortless with AI. 🚀
+**Fix It AI** - Making e-commerce management effortless with AI.
