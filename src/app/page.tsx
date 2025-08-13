@@ -155,7 +155,13 @@ export default function Home() {
         <footer className="border-t border-gray-200 py-12">
           <div className="max-w-7xl mx-auto px-6">
             <div className="flex flex-wrap justify-center items-center space-x-8 md:space-x-12">
-              <div className="text-lg font-urbanist font-light text-gray-400">Shopify</div>
+              <div className="flex items-center">
+                <img 
+                  src="https://upload.wikimedia.org/wikipedia/commons/thumb/0/0e/Shopify_logo_2018.svg/2560px-Shopify_logo_2018.svg.png" 
+                  alt="Shopify" 
+                  className="h-8 w-auto opacity-60"
+                />
+              </div>
               <div className="text-lg font-urbanist font-light text-gray-400">WordPress</div>
               <div className="text-lg font-urbanist font-light text-gray-400">WooCommerce</div>
               <div className="text-lg font-urbanist font-light text-gray-400">Magento</div>
