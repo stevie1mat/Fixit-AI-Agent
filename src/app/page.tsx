@@ -164,7 +164,7 @@ export default function Home() {
               </div>
               <div className="flex items-center">
                 <img 
-                  src="https://cdn.freebiesupply.com/images/large/2x/wordpress-logo-png-transparent.png" 
+                  src="/wordpress-logo.png" 
                   alt="WordPress" 
                   className="h-8 w-auto opacity-60"
                 />
