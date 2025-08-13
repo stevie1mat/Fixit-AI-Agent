@@ -3,7 +3,11 @@
 import { Button } from '@/components/ui/Button'
 import Link from 'next/link'
 
-export function Navbar() {
+interface NavbarProps {
+  onOpenLogin?: () => void
+}
+
+export function Navbar({ onOpenLogin }: NavbarProps) {
   return (
     <header className="flex items-center justify-between p-6 max-w-full mx-auto px-8">
       <div className="flex items-center space-x-2">
@@ -22,11 +26,18 @@ export function Navbar() {
       </nav>
       
       <div className="flex items-center space-x-10">
-        <Button variant="outline" asChild className="border-black text-black hover:bg-black hover:text-white">
-          <Link href="/login">Book Demo</Link>
+        <Button 
+          variant="outline" 
+          className="border-black text-black hover:bg-black hover:text-white"
+          onClick={onOpenLogin}
+        >
+          Book Demo
         </Button>
-        <Button asChild className="bg-black hover:bg-gray-800">
-          <Link href="/login">Get Started</Link>
+        <Button 
+          className="bg-black hover:bg-gray-800"
+          onClick={onOpenLogin}
+        >
+          Get Started
         </Button>
         <button className="md:hidden">
           <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">

@@ -5,6 +5,7 @@ import { ChatBox } from '@/components/ChatBox'
 import { ChangePreview } from '@/components/ChangePreview'
 import { Sidebar } from '@/components/Sidebar'
 import { Navbar } from '@/components/Navbar'
+import { LoginDialog } from '@/components/LoginDialog'
 import { ProtectedRoute } from '@/components/ProtectedRoute'
 import { useAppStore } from '@/lib/store'
 import { useAuth } from '@/contexts/AuthContext'
@@ -13,6 +14,7 @@ import { Settings, History, Zap, LogOut, User } from 'lucide-react'
 
 export default function Home() {
   const [sidebarOpen, setSidebarOpen] = useState(false)
+  const [loginDialogOpen, setLoginDialogOpen] = useState(false)
   const { currentPreview, connections } = useAppStore()
   const { user, signOut, loading } = useAuth()
 
@@ -35,7 +37,7 @@ export default function Home() {
     return (
       <div className="min-h-screen bg-white relative overflow-hidden">
         {/* Header */}
-        <Navbar />
+        <Navbar onOpenLogin={() => setLoginDialogOpen(true)} />
 
         {/* Hero Section */}
         <main className="flex flex-col items-center justify-center px-6">
@@ -116,8 +118,12 @@ export default function Home() {
 
         {/* Main CTA */}
         <section className="text-center pb-16">
-          <Button asChild size="lg" className="text-lg px-8 py-4 bg-black hover:bg-gray-800 rounded-lg font-light">
-            <a href="/login">Get Started — It's Free</a>
+          <Button 
+            size="lg" 
+            className="text-lg px-8 py-4 bg-black hover:bg-gray-800 rounded-lg font-light"
+            onClick={() => setLoginDialogOpen(true)}
+          >
+            Get Started — It's Free
           </Button>
         </section>
 
@@ -157,6 +163,12 @@ export default function Home() {
             </div>
           </div>
         </footer>
+
+        {/* Login Dialog */}
+        <LoginDialog 
+          isOpen={loginDialogOpen} 
+          onClose={() => setLoginDialogOpen(false)} 
+        />
       </div>
     )
   }
