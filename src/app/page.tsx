@@ -13,40 +13,40 @@ export default function Home() {
   const { currentPreview, connections } = useAppStore()
 
   return (
-    <div className="flex h-screen bg-background">
+    <div className="flex h-screen bg-white">
       {/* Sidebar */}
       <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
       
       {/* Main Content */}
       <div className="flex-1 flex flex-col">
         {/* Header */}
-        <header className="border-b bg-card">
-          <div className="flex items-center justify-between p-4">
+        <header className="bg-white shadow-sm border-b border-gray-100">
+          <div className="flex items-center justify-between px-8 py-6">
             <div className="flex items-center space-x-4">
               <Button
                 variant="ghost"
                 size="sm"
                 onClick={() => setSidebarOpen(true)}
-                className="lg:hidden"
+                className="lg:hidden text-gray-600 hover:text-gray-900"
               >
                 <Settings className="h-5 w-5" />
               </Button>
               <div>
-                <h1 className="text-xl font-bold">Fix It AI</h1>
-                <p className="text-sm text-muted-foreground">
+                <h1 className="text-2xl font-bold text-gray-800">Fix It AI</h1>
+                <p className="text-sm text-gray-600 font-medium">
                   AI-powered e-commerce assistant
                 </p>
               </div>
             </div>
             
             <div className="flex items-center space-x-2">
-              <Button variant="ghost" size="sm" asChild>
+              <Button variant="ghost" size="sm" asChild className="text-gray-600 hover:text-gray-900">
                 <a href="/settings">
                   <Settings className="h-4 w-4 mr-2" />
                   Settings
                 </a>
               </Button>
-              <Button variant="ghost" size="sm" asChild>
+              <Button variant="ghost" size="sm" asChild className="text-gray-600 hover:text-gray-900">
                 <a href="/logs">
                   <History className="h-4 w-4 mr-2" />
                   Logs
@@ -56,19 +56,6 @@ export default function Home() {
           </div>
         </header>
 
-        {/* Connection Status */}
-        {connections.length > 0 && (
-          <div className="border-b bg-muted/50">
-            <div className="p-4">
-              <div className="flex items-center space-x-2">
-                <Zap className="h-4 w-4 text-green-500" />
-                <span className="text-sm font-medium">
-                  Connected to {connections.length} store{connections.length > 1 ? 's' : ''}
-                </span>
-              </div>
-            </div>
-          </div>
-        )}
 
         {/* Main Content Area */}
         <div className="flex-1 flex overflow-hidden">
@@ -79,7 +66,7 @@ export default function Home() {
           
           {/* Preview Panel */}
           {currentPreview && (
-            <div className="w-96 border-l bg-card">
+            <div className="w-96 border-l border-gray-100 bg-white">
               <ChangePreview preview={currentPreview} />
             </div>
           )}

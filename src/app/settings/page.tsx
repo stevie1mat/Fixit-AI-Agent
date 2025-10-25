@@ -192,7 +192,7 @@ export default function SettingsPage() {
             </button>
           <button
             onClick={() => setActiveTab('wordpress')}
-            className={`flex items-center space-x-3 px-6 py-4 rounded-xl text-sm font-semibold transition-all duration-300 ${
+            className={`flex items-center space-x-3 px-4 py-3 rounded-lg text-xs font-semibold transition-all duration-300 ${
               activeTab === 'wordpress'
                 ? 'bg-gray-800 text-white shadow-lg shadow-gray-500/30 transform scale-105'
                 : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50 hover:scale-105'
@@ -203,7 +203,7 @@ export default function SettingsPage() {
           </button>
           <button
             onClick={() => setActiveTab('connected')}
-            className={`flex items-center space-x-3 px-6 py-4 rounded-xl text-sm font-semibold transition-all duration-300 ${
+            className={`flex items-center space-x-3 px-4 py-3 rounded-lg text-xs font-semibold transition-all duration-300 ${
               activeTab === 'connected'
                 ? 'bg-gray-800 text-white shadow-lg shadow-gray-500/30 transform scale-105'
                 : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50 hover:scale-105'
@@ -219,8 +219,8 @@ export default function SettingsPage() {
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
             {/* Main Form Card */}
             <div className="lg:col-span-2">
-              <div className="bg-white rounded-lg shadow-sm border border-gray-100 p-6">
-                <div className="flex items-center space-x-3 mb-6">
+              <div className="bg-white rounded-lg shadow-sm border border-gray-100 p-8">
+                <div className="flex items-center space-x-3 mb-8">
                   <div className="p-3 bg-gray-700 rounded-lg shadow-lg">
                     <Store className="h-5 w-5 text-white" />
                   </div>
@@ -234,7 +234,7 @@ export default function SettingsPage() {
                   </div>
                 </div>
 
-                <form onSubmit={handleShopifySubmit} className="space-y-6">
+                <form onSubmit={handleShopifySubmit} className="space-y-8">
                   <div>
                     <label className="block text-xs font-bold text-gray-800 mb-3 flex items-center">
                       <div className="w-2 h-2 bg-gray-500 rounded-full mr-3"></div>
@@ -365,9 +365,9 @@ export default function SettingsPage() {
                 </div>
               </div>
 
-              <div className="bg-gray-800 rounded-lg p-4 text-white shadow-lg">
-                <h3 className="text-lg font-bold mb-2">AI Support</h3>
-                <p className="text-xs text-gray-300 mb-4 font-medium">
+              <div className="bg-gray-800 rounded-lg p-6 text-white shadow-lg">
+                <h3 className="text-lg font-bold mb-3">AI Support</h3>
+                <p className="text-xs text-gray-300 mb-5 font-medium">
                   Our AI experts are here to help you get connected.
                 </p>
                 <Button className="bg-white text-gray-800 hover:bg-gray-50 font-bold px-4 py-2 rounded-lg shadow-lg hover:scale-105 transition-all duration-300">
@@ -383,10 +383,10 @@ export default function SettingsPage() {
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
             {/* Main Form Card */}
             <div className="lg:col-span-2">
-              <div className="bg-white rounded-lg shadow-sm border border-gray-100 p-6">
-                <div className="flex items-center space-x-3 mb-6">
-                  <div className="p-2 bg-gray-700 rounded-lg">
-                    <Settings className="h-4 w-4 text-white" />
+              <div className="bg-white rounded-lg shadow-sm border border-gray-100 p-8">
+                <div className="flex items-center space-x-3 mb-8">
+                  <div className="p-3 bg-gray-700 rounded-lg">
+                    <Settings className="h-5 w-5 text-white" />
                   </div>
                   <div>
                     <h2 className="text-lg font-bold text-gray-800">WordPress Connection</h2>
@@ -396,7 +396,7 @@ export default function SettingsPage() {
                   </div>
                 </div>
 
-                <form onSubmit={handleWordPressSubmit} className="space-y-4">
+                <form onSubmit={handleWordPressSubmit} className="space-y-6">
                   <div>
                     <label className="block text-xs font-semibold text-gray-700 mb-2">
                       Site URL
@@ -536,9 +536,9 @@ export default function SettingsPage() {
                 </div>
               </div>
 
-              <div className="bg-gray-800 rounded-lg p-4 text-white">
-                <h3 className="text-sm font-bold mb-2">Need Help?</h3>
-                <p className="text-xs text-gray-300 mb-3">
+              <div className="bg-gray-800 rounded-lg p-6 text-white">
+                <h3 className="text-sm font-bold mb-3">Need Help?</h3>
+                <p className="text-xs text-gray-300 mb-4">
                   Our support team is here to help you get connected.
                 </p>
                 <Button className="bg-white text-gray-800 hover:bg-gray-50 font-semibold px-3 py-1 rounded-lg">
@@ -553,9 +553,9 @@ export default function SettingsPage() {
         {activeTab === 'connected' && (
           <div className="space-y-8">
             <div className="bg-white rounded-lg shadow-sm border border-gray-100 p-6">
-              <div className="flex items-center space-x-3 mb-6">
-                <div className="p-2 bg-gray-700 rounded-lg">
-                  <Link className="h-4 w-4 text-white" />
+              <div className="flex items-center space-x-3 mb-8">
+                <div className="p-3 bg-gray-700 rounded-lg">
+                  <Link className="h-5 w-5 text-white" />
                 </div>
                 <div>
                   <h2 className="text-lg font-bold text-gray-800">All Connected Sites</h2>
@@ -583,7 +583,12 @@ export default function SettingsPage() {
                                   <Store className="h-3 w-3 text-gray-600" />
                                 </div>
                                 <div>
-                                  <p className="text-sm font-semibold text-gray-900">{connection.url}</p>
+                                  <div className="flex items-center space-x-2">
+                                    <p className="text-sm font-semibold text-gray-900">{connection.url}</p>
+                                    {connection.isConnected && (
+                                      <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                                    )}
+                                  </div>
                                   <p className="text-xs text-gray-600">
                                     {connection.isConnected ? 'Connected' : 'Disconnected'}
                                   </p>
@@ -632,7 +637,12 @@ export default function SettingsPage() {
                                   <Globe className="h-3 w-3 text-gray-600" />
                                 </div>
                                 <div>
-                                  <p className="text-sm font-semibold text-gray-900">{connection.url}</p>
+                                  <div className="flex items-center space-x-2">
+                                    <p className="text-sm font-semibold text-gray-900">{connection.url}</p>
+                                    {connection.isConnected && (
+                                      <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                                    )}
+                                  </div>
                                   <p className="text-xs text-gray-600">
                                     {connection.isConnected ? 'Connected' : 'Disconnected'}
                                   </p>

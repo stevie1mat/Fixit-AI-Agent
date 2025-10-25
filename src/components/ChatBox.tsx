@@ -88,19 +88,19 @@ export function ChatBox() {
   }
 
   return (
-    <div className="flex flex-col h-full">
+    <div className="flex flex-col h-full bg-white">
       {/* Messages */}
-      <div className="flex-1 overflow-y-auto p-4 space-y-4">
+      <div className="flex-1 overflow-y-auto p-8 space-y-6">
         {messages.length === 0 ? (
           <div className="flex items-center justify-center h-full text-center">
             <div className="max-w-md">
-              <Bot className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
-              <h3 className="text-lg font-semibold mb-2">Welcome to Fix It AI</h3>
-              <p className="text-muted-foreground mb-4">
+              <Bot className="h-12 w-12 mx-auto mb-4 text-gray-400" />
+              <h3 className="text-lg font-semibold mb-2 text-gray-800">Welcome to Fix It AI</h3>
+              <p className="text-gray-600 mb-4">
                 I can help you fix issues in your Shopify and WordPress stores. 
                 Try asking me something like:
               </p>
-              <div className="space-y-2 text-sm">
+              <div className="space-y-2 text-sm text-gray-600">
                 <p className="text-left">• "Make all discounted products show a red badge"</p>
                 <p className="text-left">• "Fix my homepage SEO basics"</p>
                 <p className="text-left">• "Speed up my WordPress homepage"</p>
@@ -119,8 +119,8 @@ export function ChatBox() {
             >
               {message.role === 'assistant' && (
                 <div className="flex-shrink-0">
-                  <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center">
-                    <Bot className="h-4 w-4 text-primary-foreground" />
+                  <div className="w-8 h-8 rounded-full bg-gray-700 flex items-center justify-center">
+                    <Bot className="h-4 w-4 text-white" />
                   </div>
                 </div>
               )}
@@ -129,8 +129,8 @@ export function ChatBox() {
                 className={cn(
                   'max-w-[80%] rounded-lg px-4 py-2',
                   message.role === 'user'
-                    ? 'bg-primary text-primary-foreground'
-                    : 'bg-muted'
+                    ? 'bg-gray-800 text-white'
+                    : 'bg-gray-100 text-gray-800'
                 )}
               >
                 <div className="whitespace-pre-wrap">{message.content}</div>
@@ -141,8 +141,8 @@ export function ChatBox() {
 
               {message.role === 'user' && (
                 <div className="flex-shrink-0">
-                  <div className="w-8 h-8 rounded-full bg-secondary flex items-center justify-center">
-                    <User className="h-4 w-4 text-secondary-foreground" />
+                  <div className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center">
+                    <User className="h-4 w-4 text-gray-600" />
                   </div>
                 </div>
               )}
@@ -153,12 +153,12 @@ export function ChatBox() {
         {isLoading && (
           <div className="flex items-start space-x-3">
             <div className="flex-shrink-0">
-              <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center">
-                <Bot className="h-4 w-4 text-primary-foreground" />
+              <div className="w-8 h-8 rounded-full bg-gray-700 flex items-center justify-center">
+                <Bot className="h-4 w-4 text-white" />
               </div>
             </div>
-            <div className="bg-muted rounded-lg px-4 py-2">
-              <div className="flex items-center space-x-2">
+            <div className="bg-gray-100 rounded-lg px-4 py-2">
+              <div className="flex items-center space-x-2 text-gray-800">
                 <Loader2 className="h-4 w-4 animate-spin" />
                 <span>Thinking...</span>
               </div>
@@ -170,14 +170,14 @@ export function ChatBox() {
       </div>
 
       {/* Input */}
-      <div className="border-t bg-card p-4">
-        <form onSubmit={handleSubmit} className="flex space-x-2">
+      <div className="border-t border-gray-100 bg-white p-6">
+        <form onSubmit={handleSubmit} className="flex space-x-3">
           <input
             type="text"
             value={input}
             onChange={(e) => setInput(e.target.value)}
             placeholder="Describe what you want to fix..."
-            className="flex-1 rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+            className="flex-1 rounded-lg border border-gray-300 bg-white px-4 py-3 text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:border-transparent transition-all duration-200"
             disabled={isSubmitting}
           />
           <Button
