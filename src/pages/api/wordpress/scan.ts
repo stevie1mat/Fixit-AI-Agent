@@ -1,5 +1,6 @@
 import { NextApiRequest, NextApiResponse } from 'next'
 import { WordPressAPI } from '@/lib/wordpress'
+import { LighthouseAPI } from '@/lib/lighthouse'
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== 'POST') {
@@ -26,12 +27,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     // Perform different types of scans based on request
     switch (scanType) {
       case 'posts':
-        const posts = await wordpress.getPosts(20)
+        const posts = await wordpress.getPosts(100) // Increased to get more posts
         scanData.posts = posts
         break
 
       case 'pages':
-        const pages = await wordpress.getPages(20)
+        const pages = await wordpress.getPages(50) // Increased to get more pages
         scanData.pages = pages
         break
 
@@ -50,23 +51,149 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         scanData.options = options
         break
 
+      case 'comments':
+        const comments = await wordpress.getComments(50)
+        scanData.comments = comments
+        break
+
+      case 'users':
+        const users = await wordpress.getUsers(50)
+        scanData.users = users
+        break
+
+      case 'media':
+        const media = await wordpress.getMedia(50)
+        scanData.media = media
+        break
+
+      case 'categories':
+        const categories = await wordpress.getCategories()
+        scanData.categories = categories
+        break
+
+      case 'tags':
+        const tags = await wordpress.getTags()
+        scanData.tags = tags
+        break
+
+      case 'menus':
+        const menus = await wordpress.getMenus()
+        scanData.menus = menus
+        break
+
+      case 'widgets':
+        const widgets = await wordpress.getWidgets()
+        scanData.widgets = widgets
+        break
+
+      case 'site-info':
+        const siteInfo = await wordpress.getSiteInfo()
+        scanData.siteInfo = siteInfo
+        break
+
+      case 'site-health':
+        const siteHealth = await wordpress.getSiteHealth()
+        scanData.siteHealth = siteHealth
+        break
+
+      case 'speed':
+        const lighthouse = new LighthouseAPI()
+        try {
+          const mobileSpeed = await lighthouse.runAudit(baseUrl)
+          const desktopSpeed = await lighthouse.runDesktopAudit(baseUrl)
+          scanData.speed = {
+            mobile: mobileSpeed,
+            desktop: desktopSpeed,
+            mobileScore: lighthouse.getPerformanceScore(mobileSpeed),
+            desktopScore: lighthouse.getPerformanceScore(desktopSpeed),
+            recommendations: lighthouse.generateRecommendations(mobileSpeed)
+          }
+        } catch (error) {
+          console.error('Error running speed test:', error)
+          scanData.speed = { error: 'Speed test failed - unable to analyze performance' }
+        }
+        break
+
       case 'full':
       default:
-        // Perform comprehensive scan
-        const [posts, pages, plugins, theme, options] = await Promise.all([
-          wordpress.getPosts(20),
-          wordpress.getPages(20),
+        // Perform comprehensive scan with all available data
+        // Use Promise.allSettled to handle permission errors gracefully
+        const results = await Promise.allSettled([
+          wordpress.getPosts(100), // Increased to get more posts
+          wordpress.getPages(50), // Increased to get more pages
           wordpress.getPlugins(),
           wordpress.getTheme(),
           wordpress.getOptions(),
+          wordpress.getComments(50),
+          wordpress.getUsers(50),
+          wordpress.getMedia(50),
+          wordpress.getCategories(),
+          wordpress.getTags(),
+          wordpress.getMenus(),
+          wordpress.getWidgets(),
+          wordpress.getSiteInfo(),
+          wordpress.getSiteHealth(),
         ])
 
+        // Run speed test separately since it's external API
+        let speedData = null
+        try {
+          const lighthouse = new LighthouseAPI()
+          const mobileSpeed = await lighthouse.runAudit(baseUrl)
+          const desktopSpeed = await lighthouse.runDesktopAudit(baseUrl)
+          speedData = {
+            mobile: mobileSpeed,
+            desktop: desktopSpeed,
+            mobileScore: lighthouse.getPerformanceScore(mobileSpeed),
+            desktopScore: lighthouse.getPerformanceScore(desktopSpeed),
+            recommendations: lighthouse.generateRecommendations(mobileSpeed)
+          }
+        } catch (error) {
+          console.error('Error running speed test:', error)
+          speedData = { error: 'Speed test failed - unable to analyze performance' }
+        }
+
+        // Extract successful results and handle failures
+        const [
+          allPosts, 
+          allPages, 
+          allPlugins, 
+          allTheme, 
+          allOptions, 
+          allComments, 
+          allUsers, 
+          allMedia, 
+          allCategories, 
+          allTags, 
+          allMenus, 
+          allWidgets, 
+          allSiteInfo, 
+          allSiteHealth
+        ] = results.map((result, index) => {
+          if (result.status === 'fulfilled') {
+            return result.value
+          } else {
+            console.error(`Failed to fetch data for index ${index}:`, result.reason)
+            return { error: result.reason.message || 'Permission denied or endpoint unavailable' }
+          }
+        })
+
         scanData = {
-          posts,
-          pages,
-          plugins,
-          theme,
-          options,
+          posts: allPosts,
+          pages: allPages,
+          plugins: allPlugins,
+          theme: allTheme,
+          options: allOptions,
+          comments: allComments,
+          users: allUsers,
+          media: allMedia,
+          categories: allCategories,
+          tags: allTags,
+          menus: allMenus,
+          widgets: allWidgets,
+          siteInfo: allSiteInfo,
+          siteHealth: allSiteHealth,
+          speed: speedData,
           scanTimestamp: new Date().toISOString(),
         }
         break

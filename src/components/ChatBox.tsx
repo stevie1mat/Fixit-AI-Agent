@@ -11,7 +11,17 @@ export function ChatBox() {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [showDropdown, setShowDropdown] = useState(false)
   const messagesEndRef = useRef<HTMLDivElement>(null)
-  const { messages, addMessage, setLoading, isLoading, updateLastMessage, connections, clearMessages } = useAppStore()
+  const { messages, addMessage, setLoading, isLoading, updateLastMessage, connections, clearMessages, loadConnections } = useAppStore()
+  
+  // Load connections from database on component mount
+  useEffect(() => {
+    loadConnections()
+  }, [loadConnections])
+
+  // Debug: Log connections on component mount
+  useEffect(() => {
+    console.log('ChatBox mounted with connections:', connections)
+  }, [connections])
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
@@ -54,6 +64,7 @@ export function ChatBox() {
     })
 
     try {
+      console.log('Sending chat request with connections:', connections)
       const response = await fetch('/api/chat', {
         method: 'POST',
         headers: {
@@ -186,7 +197,10 @@ export function ChatBox() {
                     : 'bg-gray-100 text-gray-800'
                 )}
               >
-                <div className="whitespace-pre-wrap">{message.content}</div>
+                <div 
+                  className="whitespace-pre-wrap" 
+                  dangerouslySetInnerHTML={{ __html: message.content }}
+                />
                 <div className="text-xs opacity-70 mt-1">
                   {new Date(message.timestamp).toLocaleTimeString()}
                 </div>

@@ -213,6 +213,132 @@ export class WordPressAPI {
     }
   }
 
+  async getComments(perPage = 50): Promise<any[]> {
+    try {
+      const response = await axios.get(`${this.baseUrl}/wp-json/wp/v2/comments`, {
+        headers: this.getHeaders(),
+        params: { per_page: perPage },
+      })
+      return response.data
+    } catch (error) {
+      console.error('Error fetching WordPress comments:', error)
+      throw error
+    }
+  }
+
+  async getUsers(perPage = 50): Promise<any[]> {
+    try {
+      const response = await axios.get(`${this.baseUrl}/wp-json/wp/v2/users`, {
+        headers: this.getHeaders(),
+        params: { per_page: perPage },
+      })
+      return response.data
+    } catch (error) {
+      console.error('Error fetching WordPress users:', error)
+      throw error
+    }
+  }
+
+  async getMedia(perPage = 50): Promise<any[]> {
+    try {
+      const response = await axios.get(`${this.baseUrl}/wp-json/wp/v2/media`, {
+        headers: this.getHeaders(),
+        params: { per_page: perPage },
+      })
+      return response.data
+    } catch (error) {
+      console.error('Error fetching WordPress media:', error)
+      throw error
+    }
+  }
+
+  async getCategories(): Promise<any[]> {
+    try {
+      const response = await axios.get(`${this.baseUrl}/wp-json/wp/v2/categories`, {
+        headers: this.getHeaders(),
+      })
+      return response.data
+    } catch (error) {
+      console.error('Error fetching WordPress categories:', error)
+      throw error
+    }
+  }
+
+  async getTags(): Promise<any[]> {
+    try {
+      const response = await axios.get(`${this.baseUrl}/wp-json/wp/v2/tags`, {
+        headers: this.getHeaders(),
+      })
+      return response.data
+    } catch (error) {
+      console.error('Error fetching WordPress tags:', error)
+      throw error
+    }
+  }
+
+  async getMenus(): Promise<any[]> {
+    try {
+      const response = await axios.get(`${this.baseUrl}/wp-json/wp/v2/menus`, {
+        headers: this.getHeaders(),
+      })
+      return response.data
+    } catch (error) {
+      console.error('Error fetching WordPress menus:', error)
+      throw error
+    }
+  }
+
+  async getWidgets(): Promise<any[]> {
+    try {
+      const response = await axios.get(`${this.baseUrl}/wp-json/wp/v2/widgets`, {
+        headers: this.getHeaders(),
+      })
+      return response.data
+    } catch (error) {
+      console.error('Error fetching WordPress widgets:', error)
+      throw error
+    }
+  }
+
+  async getSiteInfo(): Promise<any> {
+    try {
+      const response = await axios.get(`${this.baseUrl}/wp-json/wp/v2/`, {
+        headers: this.getHeaders(),
+      })
+      return response.data
+    } catch (error) {
+      console.error('Error fetching WordPress site info:', error)
+      throw error
+    }
+  }
+
+  async getCustomFields(postId?: number): Promise<any[]> {
+    try {
+      const endpoint = postId 
+        ? `${this.baseUrl}/wp-json/wp/v2/posts/${postId}/meta`
+        : `${this.baseUrl}/wp-json/wp/v2/meta`
+      const response = await axios.get(endpoint, {
+        headers: this.getHeaders(),
+      })
+      return response.data
+    } catch (error) {
+      console.error('Error fetching WordPress custom fields:', error)
+      throw error
+    }
+  }
+
+  async getSiteHealth(): Promise<any> {
+    try {
+      const response = await axios.get(`${this.baseUrl}/wp-json/wp/v2/site-health`, {
+        headers: this.getHeaders(),
+      })
+      return response.data
+    } catch (error) {
+      console.error('Error fetching WordPress site health:', error)
+      throw error
+    }
+  }
+
   async testConnection(): Promise<boolean> {
     try {
       await axios.get(`${this.baseUrl}/wp-json/wp/v2/`, {

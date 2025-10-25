@@ -11,7 +11,7 @@ export default function SettingsPage() {
   const [isTesting, setIsTesting] = useState(false)
   const [testResult, setTestResult] = useState<'success' | 'error' | null>(null)
   const [editingConnection, setEditingConnection] = useState<string | null>(null)
-  const { addConnection, connections, removeConnection } = useAppStore()
+  const { addConnection, connections, removeConnection, loadConnections, createConnection, deleteConnection } = useAppStore()
 
   // Shopify form state
   const [shopifyForm, setShopifyForm] = useState({
@@ -28,8 +28,8 @@ export default function SettingsPage() {
 
   // Load existing connections on component mount
   useEffect(() => {
-    // This will automatically load connections from the store via Zustand persist
-  }, [])
+    loadConnections()
+  }, [loadConnections])
 
   // Get WordPress connections
   const wordpressConnections = connections.filter(conn => conn.type === 'wordpress')
@@ -40,7 +40,7 @@ export default function SettingsPage() {
     if (connection.type === 'wordpress') {
       setWordpressForm({
         baseUrl: connection.url,
-        username: '', // We don't store username in the connection
+        username: connection.username || '', // Use stored username if available
         appPassword: '', // We don't store password for security
       })
       setEditingConnection(connection.id)
@@ -56,9 +56,14 @@ export default function SettingsPage() {
   }
 
   // Handle deleting a connection
-  const handleDeleteConnection = (connectionId: string) => {
+  const handleDeleteConnection = async (connectionId: string) => {
     if (confirm('Are you sure you want to delete this connection?')) {
-      removeConnection(connectionId)
+      try {
+        await deleteConnection(connectionId)
+      } catch (error) {
+        console.error('Failed to delete connection:', error)
+        alert('Failed to delete connection. Please try again.')
+      }
     }
   }
 
@@ -89,11 +94,10 @@ export default function SettingsPage() {
           removeConnection(editingConnection)
         }
         
-        addConnection({
-          type: 'shopify',
-          url: shopifyForm.storeUrl,
+        await createConnection({
+          storeType: 'shopify',
+          storeUrl: shopifyForm.storeUrl,
           accessToken: shopifyForm.accessToken,
-          isConnected: true,
         })
         setShopifyForm({ storeUrl: '', accessToken: '' })
         setEditingConnection(null)
@@ -134,11 +138,11 @@ export default function SettingsPage() {
           removeConnection(editingConnection)
         }
         
-        addConnection({
-          type: 'wordpress',
-          url: wordpressForm.baseUrl,
-          accessToken: wordpressForm.appPassword,
-          isConnected: true,
+        await createConnection({
+          storeType: 'wordpress',
+          storeUrl: wordpressForm.baseUrl,
+          username: wordpressForm.username,
+          appPassword: wordpressForm.appPassword,
         })
         setWordpressForm({ baseUrl: '', username: '', appPassword: '' })
         setEditingConnection(null)

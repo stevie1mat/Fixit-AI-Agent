@@ -1,5 +1,6 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
+import { ConnectionService, Connection } from './connectionService'
 
 export interface Message {
   id: string
@@ -21,7 +22,9 @@ export interface StoreConnection {
   id: string
   type: 'shopify' | 'wordpress'
   url: string
-  accessToken?: string
+  accessToken?: string // For Shopify
+  username?: string // For WordPress
+  appPassword?: string // For WordPress
   isConnected: boolean
 }
 
@@ -43,6 +46,16 @@ interface AppState {
   clearMessages: () => void
   addConnection: (connection: Omit<StoreConnection, 'id'>) => void
   removeConnection: (id: string) => void
+  loadConnections: () => Promise<void>
+  createConnection: (connectionData: {
+    storeType: 'shopify' | 'wordpress'
+    storeUrl: string
+    accessToken?: string
+    username?: string
+    appPassword?: string
+  }) => Promise<void>
+  updateConnection: (id: string, updateData: any) => Promise<void>
+  deleteConnection: (id: string) => Promise<void>
   setCurrentPreview: (preview: ChangePreview | null) => void
 }
 
@@ -100,6 +113,80 @@ export const useAppStore = create<AppState>()(
         set((state) => ({
           connections: state.connections.filter((conn) => conn.id !== id),
         }))
+      },
+
+      loadConnections: async () => {
+        try {
+          const connections = await ConnectionService.getConnections()
+          const storeConnections = connections.map(conn => ({
+            id: conn.id,
+            type: conn.storeType,
+            url: conn.storeUrl,
+            accessToken: conn.accessToken,
+            username: conn.username,
+            appPassword: conn.appPassword,
+            isConnected: conn.isActive,
+          }))
+          set({ connections: storeConnections })
+        } catch (error) {
+          console.error('Failed to load connections:', error)
+        }
+      },
+
+      createConnection: async (connectionData) => {
+        try {
+          const connection = await ConnectionService.createConnection(connectionData)
+          const storeConnection = {
+            id: connection.id,
+            type: connection.storeType,
+            url: connection.storeUrl,
+            accessToken: connection.accessToken,
+            username: connection.username,
+            appPassword: connection.appPassword,
+            isConnected: connection.isActive,
+          }
+          set((state) => ({
+            connections: [...state.connections, storeConnection],
+          }))
+        } catch (error) {
+          console.error('Failed to create connection:', error)
+          throw error
+        }
+      },
+
+      updateConnection: async (id, updateData) => {
+        try {
+          const connection = await ConnectionService.updateConnection(id, updateData)
+          const storeConnection = {
+            id: connection.id,
+            type: connection.storeType,
+            url: connection.storeUrl,
+            accessToken: connection.accessToken,
+            username: connection.username,
+            appPassword: connection.appPassword,
+            isConnected: connection.isActive,
+          }
+          set((state) => ({
+            connections: state.connections.map(conn => 
+              conn.id === id ? storeConnection : conn
+            ),
+          }))
+        } catch (error) {
+          console.error('Failed to update connection:', error)
+          throw error
+        }
+      },
+
+      deleteConnection: async (id) => {
+        try {
+          await ConnectionService.deleteConnection(id)
+          set((state) => ({
+            connections: state.connections.filter((conn) => conn.id !== id),
+          }))
+        } catch (error) {
+          console.error('Failed to delete connection:', error)
+          throw error
+        }
       },
 
       setCurrentPreview: (preview) => {
