@@ -9,7 +9,7 @@ import { Button } from '@/components/ui/Button'
 import { Settings, History, Zap } from 'lucide-react'
 
 export default function Home() {
-  const [sidebarOpen, setSidebarOpen] = useState(false)
+  const [sidebarOpen, setSidebarOpen] = useState(true)
   const { currentPreview, connections } = useAppStore()
 
   return (
@@ -26,7 +26,7 @@ export default function Home() {
               <Button
                 variant="ghost"
                 size="sm"
-                onClick={() => setSidebarOpen(true)}
+                onClick={() => setSidebarOpen(!sidebarOpen)}
                 className="lg:hidden text-gray-600 hover:text-gray-900"
               >
                 <Settings className="h-5 w-5" />

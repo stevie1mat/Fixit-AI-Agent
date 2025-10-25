@@ -47,9 +47,9 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
           {/* Content */}
           <div className="flex-1 overflow-y-auto">
             {/* Quick Actions */}
-            <div className="px-6 py-4 border-b border-gray-100">
-              <h3 className="text-sm font-bold text-gray-800 mb-3">Quick Actions</h3>
-              <div className="space-y-2">
+            <div className="px-6 py-6 border-b border-gray-100">
+              <h3 className="text-sm font-bold text-gray-800 mb-4">Quick Actions</h3>
+              <div className="space-y-3">
                 <Button 
                   variant="outline" 
                   size="sm" 

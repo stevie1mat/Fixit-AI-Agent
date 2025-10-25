@@ -3,14 +3,15 @@
 import { useState, useRef, useEffect } from 'react'
 import { useAppStore } from '@/lib/store'
 import { Button } from '@/components/ui/Button'
-import { Send, Loader2, Bot, User } from 'lucide-react'
+import { Send, Loader2, Bot, User, Trash2, MoreVertical } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
 export function ChatBox() {
   const [input, setInput] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [showDropdown, setShowDropdown] = useState(false)
   const messagesEndRef = useRef<HTMLDivElement>(null)
-  const { messages, addMessage, setLoading, isLoading, updateLastMessage, connections } = useAppStore()
+  const { messages, addMessage, setLoading, isLoading, updateLastMessage, connections, clearMessages } = useAppStore()
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
@@ -19,6 +20,23 @@ export function ChatBox() {
   useEffect(() => {
     scrollToBottom()
   }, [messages])
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (showDropdown) {
+        const target = event.target as Element
+        if (!target.closest('.dropdown-container')) {
+          setShowDropdown(false)
+        }
+      }
+    }
+
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside)
+    }
+  }, [showDropdown])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -87,8 +105,43 @@ export function ChatBox() {
     }
   }
 
+  const handleClearMessages = () => {
+    if (confirm('Are you sure you want to clear all messages?')) {
+      clearMessages()
+      setShowDropdown(false)
+    }
+  }
+
   return (
     <div className="flex flex-col h-full bg-white">
+      {/* Header with dropdown */}
+      {messages.length > 0 && (
+        <div className="flex justify-end p-4 border-b border-gray-100">
+          <div className="relative dropdown-container">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setShowDropdown(!showDropdown)}
+              className="text-gray-600 hover:text-gray-900"
+            >
+              <MoreVertical className="h-4 w-4" />
+            </Button>
+            
+            {showDropdown && (
+              <div className="absolute right-0 top-full mt-1 w-48 bg-white border border-gray-200 rounded-lg shadow-lg z-10">
+                <button
+                  onClick={handleClearMessages}
+                  className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50 flex items-center space-x-2"
+                >
+                  <Trash2 className="h-4 w-4" />
+                  <span>Clear Chat</span>
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+      
       {/* Messages */}
       <div className="flex-1 overflow-y-auto p-8 space-y-6">
         {messages.length === 0 ? (
