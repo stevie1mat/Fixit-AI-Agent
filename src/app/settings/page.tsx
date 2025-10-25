@@ -2,12 +2,12 @@
 
 import { useState, useEffect } from 'react'
 import { Button } from '@/components/ui/Button'
-import { Store, Settings, ArrowLeft, Check, X, Edit, Trash2, Globe } from 'lucide-react'
+import { Store, Settings, ArrowLeft, Check, X, Edit, Trash2, Globe, Link } from 'lucide-react'
 import { useAppStore } from '@/lib/store'
 import { validateShopifyUrl, validateWordPressUrl } from '@/lib/utils'
 
 export default function SettingsPage() {
-  const [activeTab, setActiveTab] = useState<'shopify' | 'wordpress'>('shopify')
+  const [activeTab, setActiveTab] = useState<'shopify' | 'wordpress' | 'connected'>('shopify')
   const [isTesting, setIsTesting] = useState(false)
   const [testResult, setTestResult] = useState<'success' | 'error' | null>(null)
   const [editingConnection, setEditingConnection] = useState<string | null>(null)
@@ -44,6 +44,14 @@ export default function SettingsPage() {
         appPassword: '', // We don't store password for security
       })
       setEditingConnection(connection.id)
+      setActiveTab('wordpress')
+    } else if (connection.type === 'shopify') {
+      setShopifyForm({
+        storeUrl: connection.url,
+        accessToken: '', // We don't store access token for security
+      })
+      setEditingConnection(connection.id)
+      setActiveTab('shopify')
     }
   }
 
@@ -75,6 +83,12 @@ export default function SettingsPage() {
 
       if (response.ok) {
         setTestResult('success')
+        
+        // If editing an existing connection, remove it first
+        if (editingConnection) {
+          removeConnection(editingConnection)
+        }
+        
         addConnection({
           type: 'shopify',
           url: shopifyForm.storeUrl,
@@ -82,6 +96,7 @@ export default function SettingsPage() {
           isConnected: true,
         })
         setShopifyForm({ storeUrl: '', accessToken: '' })
+        setEditingConnection(null)
       } else {
         setTestResult('error')
       }
@@ -141,7 +156,7 @@ export default function SettingsPage() {
     <div className="min-h-screen bg-background">
       {/* Header */}
       <header className="border-b bg-card">
-        <div className="flex items-center justify-between p-4">
+        <div className="flex items-center justify-between px-24 py-4">
           <div className="flex items-center space-x-4">
             <Button variant="ghost" size="sm" asChild>
               <a href="/">
@@ -159,7 +174,7 @@ export default function SettingsPage() {
         </div>
       </header>
 
-      <div className="max-w-4xl mx-auto p-6">
+      <div className="w-full px-44 py-6">
         {/* Tabs */}
         <div className="flex space-x-1 bg-muted p-1 rounded-lg mb-8">
           <button
@@ -183,6 +198,17 @@ export default function SettingsPage() {
           >
             <Settings className="h-4 w-4" />
             <span>WordPress</span>
+          </button>
+          <button
+            onClick={() => setActiveTab('connected')}
+            className={`flex items-center space-x-2 px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+              activeTab === 'connected'
+                ? 'bg-background text-foreground shadow-sm'
+                : 'text-muted-foreground hover:text-foreground'
+            }`}
+          >
+            <Link className="h-4 w-4" />
+            <span>Connected Sites</span>
           </button>
         </div>
 
@@ -231,20 +257,34 @@ export default function SettingsPage() {
                 </p>
               </div>
 
-              <Button
-                type="submit"
-                disabled={isTesting}
-                className="w-full"
-              >
-                {isTesting ? (
-                  <>
-                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2" />
-                    Testing Connection...
-                  </>
-                ) : (
-                  'Test & Save Connection'
+              <div className="flex space-x-2">
+                <Button
+                  type="submit"
+                  disabled={isTesting}
+                  className="flex-1"
+                >
+                  {isTesting ? (
+                    <>
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2" />
+                      Testing Connection...
+                    </>
+                  ) : (
+                    editingConnection ? 'Update Connection' : 'Test & Save Connection'
+                  )}
+                </Button>
+                {editingConnection && (
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => {
+                      setEditingConnection(null)
+                      setShopifyForm({ storeUrl: '', accessToken: '' })
+                    }}
+                  >
+                    Cancel
+                  </Button>
                 )}
-              </Button>
+              </div>
             </form>
 
             {testResult && (
@@ -285,12 +325,7 @@ export default function SettingsPage() {
               </p>
             </div>
 
-            {/* Horizontal layout: Form on left, Connections on right */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-              {/* Left side - Connection Form */}
-              <div className="space-y-4">
-                <h3 className="text-md font-medium">Add New Connection</h3>
-                <form onSubmit={handleWordPressSubmit} className="space-y-4">
+            <form onSubmit={handleWordPressSubmit} className="space-y-4">
               <div>
                 <label className="block text-sm font-medium mb-2">
                   Site URL
@@ -391,57 +426,121 @@ export default function SettingsPage() {
                     </div>
                   </div>
                 )}
-              </div>
+          </div>
+        )}
 
-              {/* Right side - Saved Connections */}
-              <div className="space-y-4">
-                <h3 className="text-md font-medium">Connected WordPress Sites</h3>
-                {wordpressConnections.length > 0 ? (
-                  <div className="space-y-3">
-                    {wordpressConnections.map((connection) => (
-                      <div key={connection.id} className="border rounded-lg p-4 bg-card">
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center space-x-3">
-                            <Globe className="h-5 w-5 text-blue-600" />
-                            <div>
-                              <p className="font-medium">{connection.url}</p>
-                              <p className="text-sm text-muted-foreground">
-                                {connection.isConnected ? 'Connected' : 'Disconnected'}
-                              </p>
+        {/* Connected Sites Tab */}
+        {activeTab === 'connected' && (
+          <div className="space-y-6">
+            <div>
+              <h2 className="text-lg font-semibold mb-2">All Connected Sites</h2>
+              <p className="text-muted-foreground">
+                View and manage all your connected Shopify stores and WordPress sites.
+              </p>
+            </div>
+
+            {connections.length > 0 ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {/* Shopify Connections */}
+                {shopifyConnections.length > 0 && (
+                  <div className="space-y-4">
+                    <h3 className="text-md font-medium flex items-center">
+                      <Store className="h-5 w-5 mr-2 text-green-600" />
+                      Shopify Stores ({shopifyConnections.length})
+                    </h3>
+                    <div className="space-y-3">
+                      {shopifyConnections.map((connection) => (
+                        <div key={connection.id} className="border rounded-lg p-4 bg-card">
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center space-x-3">
+                              <Store className="h-5 w-5 text-green-600" />
+                              <div>
+                                <p className="font-medium">{connection.url}</p>
+                                <p className="text-sm text-muted-foreground">
+                                  {connection.isConnected ? 'Connected' : 'Disconnected'}
+                                </p>
+                              </div>
+                            </div>
+                            <div className="flex items-center space-x-2">
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => handleEditConnection(connection)}
+                              >
+                                <Edit className="h-4 w-4 mr-1" />
+                                Edit
+                              </Button>
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => handleDeleteConnection(connection.id)}
+                                className="text-red-600 hover:text-red-700"
+                              >
+                                <Trash2 className="h-4 w-4 mr-1" />
+                                Delete
+                              </Button>
                             </div>
                           </div>
-                          <div className="flex items-center space-x-2">
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={() => handleEditConnection(connection)}
-                            >
-                              <Edit className="h-4 w-4 mr-1" />
-                              Edit
-                            </Button>
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={() => handleDeleteConnection(connection.id)}
-                              className="text-red-600 hover:text-red-700"
-                            >
-                              <Trash2 className="h-4 w-4 mr-1" />
-                              Delete
-                            </Button>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* WordPress Connections */}
+                {wordpressConnections.length > 0 && (
+                  <div className="space-y-4">
+                    <h3 className="text-md font-medium flex items-center">
+                      <Settings className="h-5 w-5 mr-2 text-blue-600" />
+                      WordPress Sites ({wordpressConnections.length})
+                    </h3>
+                    <div className="space-y-3">
+                      {wordpressConnections.map((connection) => (
+                        <div key={connection.id} className="border rounded-lg p-4 bg-card">
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center space-x-3">
+                              <Globe className="h-5 w-5 text-blue-600" />
+                              <div>
+                                <p className="font-medium">{connection.url}</p>
+                                <p className="text-sm text-muted-foreground">
+                                  {connection.isConnected ? 'Connected' : 'Disconnected'}
+                                </p>
+                              </div>
+                            </div>
+                            <div className="flex items-center space-x-2">
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => handleEditConnection(connection)}
+                              >
+                                <Edit className="h-4 w-4 mr-1" />
+                                Edit
+                              </Button>
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => handleDeleteConnection(connection.id)}
+                                className="text-red-600 hover:text-red-700"
+                              >
+                                <Trash2 className="h-4 w-4 mr-1" />
+                                Delete
+                              </Button>
+                            </div>
                           </div>
                         </div>
-                      </div>
-                    ))}
-                  </div>
-                ) : (
-                  <div className="text-center py-8 text-muted-foreground">
-                    <Globe className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                    <p>No WordPress sites connected yet.</p>
-                    <p className="text-sm">Add your first connection using the form on the left.</p>
+                      ))}
+                    </div>
                   </div>
                 )}
               </div>
-            </div>
+            ) : (
+              <div className="text-center py-12 text-muted-foreground">
+                <Link className="h-16 w-16 mx-auto mb-4 opacity-50" />
+                <h3 className="text-lg font-medium mb-2">No Connected Sites</h3>
+                <p className="mb-4">You haven't connected any stores or websites yet.</p>
+                <p className="text-sm">Use the Shopify or WordPress tabs to add your first connection.</p>
+              </div>
+            )}
           </div>
         )}
       </div>
