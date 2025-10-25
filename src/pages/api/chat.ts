@@ -2,16 +2,22 @@ import { NextApiRequest, NextApiResponse } from 'next'
 import { ShopifyAPI } from '@/lib/shopify'
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+  console.log('Chat API called with method:', req.method)
+  
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' })
   }
 
   try {
+    console.log('Request body:', req.body)
     const { message, storeData } = req.body
 
     if (!message) {
+      console.log('No message provided')
       return res.status(400).json({ error: 'Message is required' })
     }
+
+    console.log('Processing message:', message)
 
     // If store data is provided, use it; otherwise, scan the store
     let storeInfo = ''
@@ -50,19 +56,18 @@ ${products.slice(0, 5).map(p => `- ${p.title} (${p.variants.length} variants)`).
     res.setHeader('Cache-Control', 'no-cache')
     res.setHeader('Connection', 'keep-alive')
 
-    // Call Grok API for AI analysis
-    const grokResponse = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+    // Call Gemini API for AI analysis (non-streaming first to test)
+    const geminiResponse = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${process.env.GEMINI_API_KEY}`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${process.env.GROK_API_KEY}`,
       },
       body: JSON.stringify({
-        model: 'meta-llama/llama-4-scout-17b-16e-instruct',
-        messages: [
+        contents: [
           {
-            role: 'system',
-            content: `You are Fix It AI, an expert e-commerce assistant that helps fix issues in Shopify and WordPress stores.
+            parts: [
+              {
+                text: `You are Fix It AI, an expert e-commerce assistant that helps fix issues in Shopify and WordPress stores.
 
 Your capabilities include:
 - Shopify: Product management, theme editing, discount creation, shipping configuration
@@ -84,54 +89,35 @@ Respond in a helpful, conversational tone. If you need to make changes, explain 
 Example responses:
 - "I can see you have ${storeInfo ? 'X products' : 'a Shopify store'}. I'll help you add a red badge to discounted products."
 - "Based on your current theme setup, I can optimize your homepage for better performance."
-- "I'll create a discount rule to exclude discounted items from free shipping in Canada."`
-          },
-          {
-            role: 'user',
-            content: message
+- "I'll create a discount rule to exclude discounted items from free shipping in Canada."
+
+User message: ${message}`
+              }
+            ]
           }
         ],
-        stream: true,
-        temperature: 0.7,
-        max_tokens: 1000,
+        generationConfig: {
+          temperature: 0.7,
+          maxOutputTokens: 1000,
+        },
       }),
     })
 
-    if (!grokResponse.ok) {
-      throw new Error('Failed to get AI response')
+    console.log('Gemini API response status:', geminiResponse.status)
+
+    if (!geminiResponse.ok) {
+      const errorText = await geminiResponse.text()
+      console.error('Gemini API error:', errorText)
+      throw new Error(`Failed to get AI response: ${geminiResponse.status} ${errorText}`)
     }
 
-    const reader = grokResponse.body?.getReader()
-    if (!reader) {
-      throw new Error('No response body')
-    }
+    const responseData = await geminiResponse.json()
+    console.log('Gemini API response data:', JSON.stringify(responseData, null, 2))
 
-    // Stream the response
-    while (true) {
-      const { done, value } = await reader.read()
-      if (done) break
-
-      const chunk = new TextDecoder().decode(value)
-      const lines = chunk.split('\n')
-
-      for (const line of lines) {
-        if (line.startsWith('data: ')) {
-          const data = line.slice(6)
-          if (data === '[DONE]') {
-            res.end()
-            return
-          }
-
-          try {
-            const parsed = JSON.parse(data)
-            if (parsed.choices?.[0]?.delta?.content) {
-              res.write(parsed.choices[0].delta.content)
-            }
-          } catch (e) {
-            // Ignore parsing errors for incomplete chunks
-          }
-        }
-      }
+    if (responseData.candidates?.[0]?.content?.parts?.[0]?.text) {
+      res.write(responseData.candidates[0].content.parts[0].text)
+    } else {
+      res.write('Sorry, I could not generate a response.')
     }
 
     res.end()
