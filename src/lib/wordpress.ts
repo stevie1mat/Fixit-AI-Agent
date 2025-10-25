@@ -133,8 +133,21 @@ export class WordPressAPI {
     }
   }
 
+  async getActivePlugins(): Promise<string[]> {
+    try {
+      const plugins = await this.getPlugins()
+      return plugins
+        .filter(plugin => plugin.status === 'active')
+        .map(plugin => plugin.slug)
+    } catch (error) {
+      console.error('Error fetching active WordPress plugins:', error)
+      throw error
+    }
+  }
+
   async activatePlugin(plugin: string): Promise<any> {
     try {
+      // Try the standard WordPress REST API approach first
       const response = await axios.post(`${this.baseUrl}/wp-json/wp/v2/plugins`, {
         plugin,
         status: 'active',
@@ -144,14 +157,31 @@ export class WordPressAPI {
       return response.data
     } catch (error) {
       console.error('Error activating WordPress plugin:', error)
-      throw error
+      // Fallback: Try to use a custom endpoint or alternative method
+      throw new Error(`Failed to activate plugin '${plugin}': ${error instanceof Error ? error.message : 'Unknown error'}`)
     }
   }
 
   async deactivatePlugin(plugin: string): Promise<any> {
     try {
+      // First, let's get the actual plugin slug from the plugins list
+      const plugins = await this.getPlugins()
+      const targetPlugin = plugins.find(p => 
+        p.name?.toLowerCase().includes(plugin.toLowerCase()) ||
+        p.plugin?.toLowerCase().includes(plugin.toLowerCase()) ||
+        p.slug?.toLowerCase().includes(plugin.toLowerCase())
+      )
+      
+      if (!targetPlugin) {
+        throw new Error(`Plugin '${plugin}' not found in installed plugins`)
+      }
+      
+      const pluginSlug = targetPlugin.plugin || targetPlugin.slug || plugin
+      console.log(`Attempting to deactivate plugin: ${pluginSlug}`)
+      
+      // Try the standard WordPress REST API approach
       const response = await axios.post(`${this.baseUrl}/wp-json/wp/v2/plugins`, {
-        plugin,
+        plugin: pluginSlug,
         status: 'inactive',
       }, {
         headers: this.getHeaders(),
@@ -159,7 +189,13 @@ export class WordPressAPI {
       return response.data
     } catch (error) {
       console.error('Error deactivating WordPress plugin:', error)
-      throw error
+      
+      // If the REST API doesn't work, try alternative approaches
+      if (error instanceof Error && error.message.includes('400')) {
+        throw new Error(`WordPress REST API doesn't support plugin management. You may need to install a plugin management plugin or use WP-CLI. Plugin: ${plugin}`)
+      }
+      
+      throw new Error(`Failed to deactivate plugin '${plugin}': ${error instanceof Error ? error.message : 'Unknown error'}`)
     }
   }
 
@@ -348,6 +384,168 @@ export class WordPressAPI {
     } catch (error) {
       console.error('WordPress connection test failed:', error)
       return false
+    }
+  }
+
+  async clearW3TotalCache(): Promise<boolean> {
+    try {
+      const response = await axios.post(`${this.baseUrl}/wp-json/w3tc/v1/purge`, {}, {
+        headers: this.getHeaders(),
+      })
+      return response.status === 200
+    } catch (error) {
+      console.error('Error clearing W3 Total Cache:', error)
+      return false
+    }
+  }
+
+  async clearWPRocketCache(): Promise<boolean> {
+    try {
+      const response = await axios.delete(`${this.baseUrl}/wp-json/wp-rocket/v1/cache`, {
+        headers: this.getHeaders(),
+      })
+      return response.status === 200
+    } catch (error) {
+      console.error('Error clearing WP Rocket cache:', error)
+      return false
+    }
+  }
+
+  async clearWPSuperCache(): Promise<boolean> {
+    try {
+      const response = await axios.delete(`${this.baseUrl}/wp-json/wp-super-cache/v1/cache`, {
+        headers: this.getHeaders(),
+      })
+      return response.status === 200
+    } catch (error) {
+      console.error('Error clearing WP Super Cache:', error)
+      return false
+    }
+  }
+
+  async clearCache(): Promise<{ success: boolean; message: string; plugin?: string }> {
+    try {
+      const activePlugins = await this.getActivePlugins()
+      
+      if (activePlugins.includes('w3-total-cache')) {
+        const success = await this.clearW3TotalCache()
+        return {
+          success,
+          message: success ? 'Success! I have flushed the W3 Total Cache.' : 'W3 Total Cache found but cache clearing failed.',
+          plugin: 'w3-total-cache'
+        }
+      } else if (activePlugins.includes('wp-rocket')) {
+        const success = await this.clearWPRocketCache()
+        return {
+          success,
+          message: success ? 'Success! I have cleared the WP Rocket cache.' : 'WP Rocket found but cache clearing failed.',
+          plugin: 'wp-rocket'
+        }
+      } else if (activePlugins.includes('wp-super-cache')) {
+        const success = await this.clearWPSuperCache()
+        return {
+          success,
+          message: success ? 'Success! I have cleared the WP Super Cache.' : 'WP Super Cache found but cache clearing failed.',
+          plugin: 'wp-super-cache'
+        }
+      } else {
+        return {
+          success: false,
+          message: "I couldn't find an active, supported caching plugin. I checked for W3 Total Cache, WP Rocket, and WP Super Cache."
+        }
+      }
+    } catch (error) {
+      console.error('Error clearing cache:', error)
+      return {
+        success: false,
+        message: 'Failed to clear cache. Please try again or clear cache manually from your WordPress admin dashboard.'
+      }
+    }
+  }
+
+  // Check if plugin management is available
+  async checkPluginManagementSupport(): Promise<{ supported: boolean; message: string }> {
+    try {
+      // Try to access the plugins endpoint
+      const response = await axios.get(`${this.baseUrl}/wp-json/wp/v2/plugins`, {
+        headers: this.getHeaders(),
+      })
+      
+      return {
+        supported: true,
+        message: 'Plugin management is supported via REST API'
+      }
+    } catch (error) {
+      return {
+        supported: false,
+        message: 'Plugin management is not supported via REST API. You may need to install a plugin management plugin or use WP-CLI.'
+      }
+    }
+  }
+
+  // Get plugin information by name
+  async getPluginByName(pluginName: string): Promise<any> {
+    try {
+      const plugins = await this.getPlugins()
+      const plugin = plugins.find(p => 
+        p.name?.toLowerCase().includes(pluginName.toLowerCase()) ||
+        p.plugin?.toLowerCase().includes(pluginName.toLowerCase()) ||
+        p.slug?.toLowerCase().includes(pluginName.toLowerCase())
+      )
+      
+      return plugin
+    } catch (error) {
+      console.error('Error finding plugin:', error)
+      return null
+    }
+  }
+
+  // Provide manual plugin management instructions
+  async getPluginManagementInstructions(pluginName: string, action: 'deactivate' | 'activate'): Promise<{
+    success: boolean
+    message: string
+    instructions: string[]
+    alternatives: string[]
+  }> {
+    try {
+      const plugin = await this.getPluginByName(pluginName)
+      
+      if (!plugin) {
+        return {
+          success: false,
+          message: `Plugin '${pluginName}' not found in your installed plugins.`,
+          instructions: [],
+          alternatives: []
+        }
+      }
+
+      const instructions = [
+        `1. Log into your WordPress admin dashboard at ${this.baseUrl}/wp-admin`,
+        `2. Navigate to Plugins → Installed Plugins`,
+        `3. Find "${plugin.name || pluginName}" in the list`,
+        `4. Click the "${action === 'deactivate' ? 'Deactivate' : 'Activate'}" link under the plugin name`,
+        `5. Confirm the action`
+      ]
+
+      const alternatives = [
+        `**WP-CLI Method:** \`wp plugin ${action} ${plugin.plugin || plugin.slug || pluginName.toLowerCase().replace(/\s+/g, '-')}\``,
+        `**Plugin Management Plugin:** Install a plugin like "WP REST API Controller" to enable REST API plugin management`,
+        `**Custom Code:** Add custom REST API endpoints for plugin management`
+      ]
+
+      return {
+        success: true,
+        message: `Here are the instructions to ${action} ${pluginName}:`,
+        instructions,
+        alternatives
+      }
+    } catch (error) {
+      return {
+        success: false,
+        message: `Error getting instructions for ${pluginName}: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        instructions: [],
+        alternatives: []
+      }
     }
   }
 }

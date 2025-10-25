@@ -72,6 +72,7 @@ export function ChatBox() {
         },
         body: JSON.stringify({
           message: userMessage,
+          messages: messages, // Send full conversation history
           storeData: { connections },
         }),
       })

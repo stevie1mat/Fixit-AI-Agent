@@ -14,7 +14,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   try {
     console.log('Request body:', req.body)
-    const { message, storeData } = req.body
+    const { message, messages, storeData } = req.body
 
     if (!message) {
       console.log('No message provided')
@@ -22,6 +22,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     }
 
     console.log('Processing message:', message)
+    console.log('Conversation history:', messages?.length || 0, 'messages')
 
     // Get connections from database instead of localStorage
     let storeInfo = ''
@@ -132,8 +133,8 @@ ${JSON.stringify(themes, null, 2)}
             
             // Provide comprehensive data to AI with key information highlighted
             // Handle error cases gracefully
-            const pluginNames = plugins.error ? 'Permission denied' : plugins.map(p => p.name || p.plugin || 'Unknown').join(', ')
-            const recentPosts = posts.error ? [] : posts.slice(0, 5).map(p => ({
+            const pluginNames = plugins.error ? 'Permission denied' : plugins.map((p: any) => p.name || p.plugin || 'Unknown').join(', ')
+            const recentPosts = posts.error ? [] : posts.slice(0, 5).map((p: any) => ({
               title: p.title.rendered,
               date: p.date,
               status: p.status,
@@ -153,15 +154,15 @@ ${JSON.stringify(themes, null, 2)}
             }
 
             // Format comments information
-            const pendingComments = comments.error ? 0 : comments.filter(c => c.status === 'hold').length
-            const approvedComments = comments.error ? 0 : comments.filter(c => c.status === 'approved').length
+            const pendingComments = comments.error ? 0 : comments.filter((c: any) => c.status === 'hold').length
+            const approvedComments = comments.error ? 0 : comments.filter((c: any) => c.status === 'approved').length
             
             // Format users information
-            const adminUsers = users.error ? 0 : users.filter(u => u.roles && u.roles.includes('administrator')).length
-            const editorUsers = users.error ? 0 : users.filter(u => u.roles && u.roles.includes('editor')).length
+            const adminUsers = users.error ? 0 : users.filter((u: any) => u.roles && u.roles.includes('administrator')).length
+            const editorUsers = users.error ? 0 : users.filter((u: any) => u.roles && u.roles.includes('editor')).length
             
             // Format media information
-            const totalMediaSize = media.error ? 0 : media.reduce((total, m) => total + (m.media_details?.filesize || 0), 0)
+            const totalMediaSize = media.error ? 0 : media.reduce((total: any, m: any) => total + (m.media_details?.filesize || 0), 0)
             const mediaSizeMB = Math.round(totalMediaSize / 1024 / 1024 * 100) / 100
             
             storeInfo = `
@@ -195,19 +196,19 @@ PLUGIN LIST (${plugins.error ? 'Permission denied' : `${plugins.length} plugins`
 ${pluginNames}
 
 RECENT POSTS (${posts.error ? 'Permission denied' : `${posts.length} total`}):
-${recentPosts.map(p => `- ${p.title} (${new Date(p.date).toLocaleDateString()}, ${p.status})`).join('\n')}
+${recentPosts.map((p: any) => `- ${p.title} (${new Date(p.date).toLocaleDateString()}, ${p.status})`).join('\n')}
 
 COMMENTS SUMMARY:
 - Total: ${comments.error ? 'Permission denied' : comments.length}
 - Approved: ${approvedComments}
 - Pending: ${pendingComments}
-- Recent comments: ${comments.error ? 'Permission denied' : comments.slice(0, 3).map(c => `"${c.content?.rendered?.substring(0, 50)}..." by ${c.author_name}`).join(', ')}
+- Recent comments: ${comments.error ? 'Permission denied' : comments.slice(0, 3).map((c: any) => `"${c.content?.rendered?.substring(0, 50)}..." by ${c.author_name}`).join(', ')}
 
 USERS SUMMARY:
 - Total: ${users.error ? 'Permission denied' : users.length}
 - Administrators: ${adminUsers}
 - Editors: ${editorUsers}
-- Recent users: ${users.error ? 'Permission denied' : users.slice(0, 3).map(u => `${u.name} (${u.roles?.join(', ') || 'no roles'})`).join(', ')}
+- Recent users: ${users.error ? 'Permission denied' : users.slice(0, 3).map((u: any) => `${u.name} (${u.roles?.join(', ') || 'no roles'})`).join(', ')}
 
 COMPLETE DATA AVAILABLE:
 - All ${posts.error ? 'Permission denied' : `${posts.length} posts with complete metadata (titles, dates, content, status, slugs)`}
@@ -251,18 +252,30 @@ ${speedData?.recommendations ? speedData.recommendations.map(rec => `- ${rec}`).
     res.setHeader('Cache-Control', 'no-cache')
     res.setHeader('Connection', 'keep-alive')
 
-    // Call Gemini API for AI analysis (non-streaming first to test)
+    // Build conversation history for context
+    const conversationHistory = messages ? messages.map((msg: any) => ({
+      role: msg.role === 'user' ? 'user' : 'model',
+      parts: [{ text: msg.content }]
+    })) : []
+
+    // Add current message to conversation
+    conversationHistory.push({
+      role: 'user',
+      parts: [{ text: message }]
+    })
+
+    // Call Gemini API for AI analysis with conversation history
     const geminiResponse = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${process.env.GEMINI_API_KEY}`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        contents: [
-          {
-            parts: [
-              {
-                text: `You are Fix It AI, an expert e-commerce assistant that helps fix issues in Shopify and WordPress stores.
+        contents: conversationHistory,
+        systemInstruction: {
+          parts: [
+            {
+              text: `You are Fix It AI, an expert e-commerce assistant that helps fix issues in Shopify and WordPress stores.
 
 Your capabilities include:
 - Shopify: Product management, theme editing, discount creation, shipping configuration
@@ -286,11 +299,10 @@ Example responses:
 - "Based on your current theme setup, I can optimize your homepage for better performance."
 - "I'll create a discount rule to exclude discounted items from free shipping in Canada."
 
-User message: ${message}`
-              }
-            ]
-          }
-        ],
+Remember the conversation context and refer to previous messages when relevant.`
+            }
+          ]
+        },
         generationConfig: {
           temperature: 0.7,
           maxOutputTokens: 1000,
@@ -311,7 +323,111 @@ User message: ${message}`
 
     if (responseData.candidates?.[0]?.content?.parts?.[0]?.text) {
       const aiResponse = responseData.candidates[0].content.parts[0].text
-      const formattedResponse = formatMarkdownToHtml(aiResponse)
+      
+      // Check if the response contains action keywords
+      const actionKeywords = [
+        'deactivate', 'activate', 'install', 'uninstall', 'update',
+        'clear cache', 'flush cache', 'optimize', 'fix', 'create',
+        'delete', 'modify', 'change', 'configure'
+      ]
+      
+      const hasAction = actionKeywords.some(keyword => 
+        aiResponse.toLowerCase().includes(keyword)
+      )
+      
+      let finalResponse = aiResponse
+      
+      // If action is detected, try to execute it
+      if (hasAction && connections && connections.length > 0) {
+        try {
+          const connection = connections.find(conn => conn.storeType === 'wordpress') || connections[0]
+          
+          if (connection && connection.storeType === 'wordpress') {
+            const wordpress = new WordPressAPI(connection.storeUrl, connection.username, connection.appPassword)
+            
+            // Handle specific actions
+            if (aiResponse.toLowerCase().includes('deactivate') && aiResponse.toLowerCase().includes('w3 total cache')) {
+              try {
+                // First check if plugin management is supported
+                const pluginSupport = await wordpress.checkPluginManagementSupport()
+                
+                if (!pluginSupport.supported) {
+                  // Get detailed instructions for manual plugin management
+                  const instructions = await wordpress.getPluginManagementInstructions('W3 Total Cache', 'deactivate')
+                  
+                  if (instructions.success) {
+                    finalResponse += `\n\n⚠️ **Plugin Management Not Available via REST API**\n\n${instructions.message}\n\n**Step-by-Step Instructions:**\n${instructions.instructions.map(step => `- ${step}`).join('\n')}\n\n**Alternative Methods:**\n${instructions.alternatives.map(alt => `- ${alt}`).join('\n')}`
+                  } else {
+                    finalResponse += `\n\n⚠️ **Plugin Management Not Available**\n\n${pluginSupport.message}\n\n**Alternative Solutions:**\n- Install a plugin management plugin\n- Use WP-CLI: \`wp plugin deactivate w3-total-cache\`\n- Deactivate manually in WordPress admin`
+                  }
+                  
+                  // Log the limitation
+                  await DatabaseService.createChangeLog({
+                    action: 'plugin_deactivation',
+                    operation: 'deactivate_plugin',
+                    description: 'Plugin management not supported via REST API',
+                    status: 'failed',
+                    error: 'REST API plugin management not available'
+                  })
+                } else {
+                  // Try to find the plugin first
+                  const pluginInfo = await wordpress.getPluginByName('W3 Total Cache')
+                  
+                  if (!pluginInfo) {
+                    finalResponse += `\n\n❌ **W3 Total Cache plugin not found** in your installed plugins.`
+                  } else {
+                    const result = await wordpress.deactivatePlugin('W3 Total Cache')
+                    finalResponse += `\n\n✅ **W3 Total Cache has been deactivated successfully!**`
+                    
+                    // Log the action
+                    await DatabaseService.createChangeLog({
+                      action: 'plugin_deactivation',
+                      operation: 'deactivate_plugin',
+                      description: 'Deactivated W3 Total Cache plugin',
+                      status: 'success',
+                      metadata: { plugin: 'W3 Total Cache', result }
+                    })
+                  }
+                }
+              } catch (error) {
+                finalResponse += `\n\n❌ **Failed to deactivate W3 Total Cache:** ${error instanceof Error ? error.message : 'Unknown error'}`
+                
+                // Log the error
+                await DatabaseService.createChangeLog({
+                  action: 'plugin_deactivation',
+                  operation: 'deactivate_plugin',
+                  description: 'Failed to deactivate W3 Total Cache plugin',
+                  status: 'failed',
+                  error: error instanceof Error ? error.message : 'Unknown error'
+                })
+              }
+            } else if (aiResponse.toLowerCase().includes('clear cache') || aiResponse.toLowerCase().includes('flush cache')) {
+              try {
+                const cacheResult = await wordpress.clearCache()
+                finalResponse += `\n\n✅ **Cache cleared successfully!**\n\n**Result:** ${cacheResult.message}`
+                
+                // Log the action
+                await DatabaseService.createChangeLog({
+                  action: 'cache_clear',
+                  operation: 'clear_cache',
+                  description: 'Cleared WordPress cache',
+                  status: cacheResult.success ? 'success' : 'failed',
+                  metadata: { result: cacheResult }
+                })
+              } catch (error) {
+                finalResponse += `\n\n❌ **Failed to clear cache:** ${error instanceof Error ? error.message : 'Unknown error'}`
+              }
+            } else {
+              finalResponse += `\n\n⚠️ **Action detected but not implemented yet.** I can help with:\n- Deactivating plugins (like W3 Total Cache)\n- Clearing cache\n- Other WordPress actions (coming soon!)`
+            }
+          }
+        } catch (error) {
+          console.error('Error executing action:', error)
+          finalResponse += `\n\n⚠️ **Action execution error:** ${error instanceof Error ? error.message : 'Unknown error'}`
+        }
+      }
+      
+      const formattedResponse = formatMarkdownToHtml(finalResponse)
       res.write(formattedResponse)
     } else {
       res.write('Sorry, I could not generate a response.')

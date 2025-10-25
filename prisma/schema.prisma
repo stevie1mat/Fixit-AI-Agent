@@ -39,3 +39,29 @@ model ChatSession {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
+
+model AIFunction {
+  id          String   @id @default(cuid())
+  name        String   @unique
+  description String?
+  functionCode String  // Store function code as string
+  parameters  String?  // JSON string of parameters
+  usageCount  Int      @default(0)
+  successRate Float    @default(0.0)
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  executions  FunctionExecution[]
+}
+
+model FunctionExecution {
+  id          String   @id @default(cuid())
+  functionId  String
+  function    AIFunction @relation(fields: [functionId], references: [id])
+  inputData   String?  // JSON string of input data
+  outputData  String?  // JSON string of output data
+  success     Boolean
+  executionTime Int?   // Execution time in milliseconds
+  error       String?  // Error message if failed
+  createdAt   DateTime @default(now())
+}
