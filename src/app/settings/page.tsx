@@ -1,8 +1,8 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Button } from '@/components/ui/Button'
-import { Store, Settings, ArrowLeft, Check, X } from 'lucide-react'
+import { Store, Settings, ArrowLeft, Check, X, Edit, Trash2, Globe } from 'lucide-react'
 import { useAppStore } from '@/lib/store'
 import { validateShopifyUrl, validateWordPressUrl } from '@/lib/utils'
 
@@ -10,7 +10,8 @@ export default function SettingsPage() {
   const [activeTab, setActiveTab] = useState<'shopify' | 'wordpress'>('shopify')
   const [isTesting, setIsTesting] = useState(false)
   const [testResult, setTestResult] = useState<'success' | 'error' | null>(null)
-  const { addConnection } = useAppStore()
+  const [editingConnection, setEditingConnection] = useState<string | null>(null)
+  const { addConnection, connections, removeConnection } = useAppStore()
 
   // Shopify form state
   const [shopifyForm, setShopifyForm] = useState({
@@ -24,6 +25,34 @@ export default function SettingsPage() {
     username: '',
     appPassword: '',
   })
+
+  // Load existing connections on component mount
+  useEffect(() => {
+    // This will automatically load connections from the store via Zustand persist
+  }, [])
+
+  // Get WordPress connections
+  const wordpressConnections = connections.filter(conn => conn.type === 'wordpress')
+  const shopifyConnections = connections.filter(conn => conn.type === 'shopify')
+
+  // Handle editing a connection
+  const handleEditConnection = (connection: any) => {
+    if (connection.type === 'wordpress') {
+      setWordpressForm({
+        baseUrl: connection.url,
+        username: '', // We don't store username in the connection
+        appPassword: '', // We don't store password for security
+      })
+      setEditingConnection(connection.id)
+    }
+  }
+
+  // Handle deleting a connection
+  const handleDeleteConnection = (connectionId: string) => {
+    if (confirm('Are you sure you want to delete this connection?')) {
+      removeConnection(connectionId)
+    }
+  }
 
   const handleShopifySubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -84,6 +113,12 @@ export default function SettingsPage() {
 
       if (response.ok) {
         setTestResult('success')
+        
+        // If editing an existing connection, remove it first
+        if (editingConnection) {
+          removeConnection(editingConnection)
+        }
+        
         addConnection({
           type: 'wordpress',
           url: wordpressForm.baseUrl,
@@ -91,6 +126,7 @@ export default function SettingsPage() {
           isConnected: true,
         })
         setWordpressForm({ baseUrl: '', username: '', appPassword: '' })
+        setEditingConnection(null)
       } else {
         setTestResult('error')
       }
@@ -249,7 +285,12 @@ export default function SettingsPage() {
               </p>
             </div>
 
-            <form onSubmit={handleWordPressSubmit} className="space-y-4">
+            {/* Horizontal layout: Form on left, Connections on right */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+              {/* Left side - Connection Form */}
+              <div className="space-y-4">
+                <h3 className="text-md font-medium">Add New Connection</h3>
+                <form onSubmit={handleWordPressSubmit} className="space-y-4">
               <div>
                 <label className="block text-sm font-medium mb-2">
                   Site URL
@@ -295,47 +336,112 @@ export default function SettingsPage() {
                 </p>
               </div>
 
-              <Button
-                type="submit"
-                disabled={isTesting}
-                className="w-full"
-              >
-                {isTesting ? (
-                  <>
-                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2" />
-                    Testing Connection...
-                  </>
-                ) : (
-                  'Test & Save Connection'
-                )}
-              </Button>
-            </form>
-
-            {testResult && (
-              <div className={`p-4 rounded-md ${
-                testResult === 'success' 
-                  ? 'bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800' 
-                  : 'bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800'
-              }`}>
-                <div className="flex items-center space-x-2">
-                  {testResult === 'success' ? (
-                    <Check className="h-4 w-4 text-green-600 dark:text-green-400" />
+              <div className="flex space-x-2">
+                <Button
+                  type="submit"
+                  disabled={isTesting}
+                  className="flex-1"
+                >
+                  {isTesting ? (
+                    <>
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2" />
+                      Testing Connection...
+                    </>
                   ) : (
-                    <X className="h-4 w-4 text-red-600 dark:text-red-400" />
+                    editingConnection ? 'Update Connection' : 'Test & Save Connection'
                   )}
-                  <span className={`text-sm font-medium ${
+                </Button>
+                {editingConnection && (
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => {
+                      setEditingConnection(null)
+                      setWordpressForm({ baseUrl: '', username: '', appPassword: '' })
+                    }}
+                  >
+                    Cancel
+                  </Button>
+                )}
+                  </div>
+                </form>
+
+                {testResult && (
+                  <div className={`p-4 rounded-md ${
                     testResult === 'success' 
-                      ? 'text-green-800 dark:text-green-200' 
-                      : 'text-red-800 dark:text-red-200'
+                      ? 'bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800' 
+                      : 'bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800'
                   }`}>
-                    {testResult === 'success' 
-                      ? 'Connection successful!' 
-                      : 'Connection failed. Please check your credentials.'
-                    }
-                  </span>
-                </div>
+                    <div className="flex items-center space-x-2">
+                      {testResult === 'success' ? (
+                        <Check className="h-4 w-4 text-green-600 dark:text-green-400" />
+                      ) : (
+                        <X className="h-4 w-4 text-red-600 dark:text-red-400" />
+                      )}
+                      <span className={`text-sm font-medium ${
+                        testResult === 'success' 
+                          ? 'text-green-800 dark:text-green-200' 
+                          : 'text-red-800 dark:text-red-200'
+                      }`}>
+                        {testResult === 'success' 
+                          ? 'Connection successful!' 
+                          : 'Connection failed. Please check your credentials.'
+                        }
+                      </span>
+                    </div>
+                  </div>
+                )}
               </div>
-            )}
+
+              {/* Right side - Saved Connections */}
+              <div className="space-y-4">
+                <h3 className="text-md font-medium">Connected WordPress Sites</h3>
+                {wordpressConnections.length > 0 ? (
+                  <div className="space-y-3">
+                    {wordpressConnections.map((connection) => (
+                      <div key={connection.id} className="border rounded-lg p-4 bg-card">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center space-x-3">
+                            <Globe className="h-5 w-5 text-blue-600" />
+                            <div>
+                              <p className="font-medium">{connection.url}</p>
+                              <p className="text-sm text-muted-foreground">
+                                {connection.isConnected ? 'Connected' : 'Disconnected'}
+                              </p>
+                            </div>
+                          </div>
+                          <div className="flex items-center space-x-2">
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => handleEditConnection(connection)}
+                            >
+                              <Edit className="h-4 w-4 mr-1" />
+                              Edit
+                            </Button>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => handleDeleteConnection(connection.id)}
+                              className="text-red-600 hover:text-red-700"
+                            >
+                              <Trash2 className="h-4 w-4 mr-1" />
+                              Delete
+                            </Button>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="text-center py-8 text-muted-foreground">
+                    <Globe className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                    <p>No WordPress sites connected yet.</p>
+                    <p className="text-sm">Add your first connection using the form on the left.</p>
+                  </div>
+                )}
+              </div>
+            </div>
           </div>
         )}
       </div>
