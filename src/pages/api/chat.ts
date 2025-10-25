@@ -38,9 +38,10 @@ Current Store Data:
 Recent Products:
 ${products.slice(0, 5).map(p => `- ${p.title} (${p.variants.length} variants)`).join('\n')}
         `.trim()
-      } catch (error) {
-        console.error('Error scanning store:', error)
-        storeInfo = 'Store connected but unable to scan data at the moment.'
+        } catch (error) {
+          console.error('Error scanning store:', error)
+          storeInfo = 'Store connected but unable to scan data at the moment.'
+        }
       }
     }
 
