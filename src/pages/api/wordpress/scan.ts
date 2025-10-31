@@ -25,33 +25,38 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     // Perform different types of scans based on request
     switch (scanType) {
-      case 'posts':
+      case 'posts': {
         const posts = await wordpress.getPosts(20)
         scanData.posts = posts
         break
+      }
 
-      case 'pages':
+      case 'pages': {
         const pages = await wordpress.getPages(20)
         scanData.pages = pages
         break
+      }
 
-      case 'plugins':
+      case 'plugins': {
         const plugins = await wordpress.getPlugins()
         scanData.plugins = plugins
         break
+      }
 
-      case 'theme':
+      case 'theme': {
         const theme = await wordpress.getTheme()
         scanData.theme = theme
         break
+      }
 
-      case 'options':
+      case 'options': {
         const options = await wordpress.getOptions()
         scanData.options = options
         break
+      }
 
       case 'full':
-      default:
+      default: {
         // Perform comprehensive scan
         const [posts, pages, plugins, theme, options] = await Promise.all([
           wordpress.getPosts(20),
@@ -70,6 +75,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           scanTimestamp: new Date().toISOString(),
         }
         break
+      }
     }
 
     res.status(200).json({
