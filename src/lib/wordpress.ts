@@ -60,6 +60,42 @@ export class WordPressAPI {
     }
   }
 
+  async getAllPosts(): Promise<WordPressPost[]> {
+    try {
+      const allPosts: WordPressPost[] = []
+      let page = 1
+      const perPage = 100 // WordPress API max per page
+      let hasMore = true
+
+      while (hasMore) {
+        const response = await axios.get(`${this.baseUrl}/wp-json/wp/v2/posts`, {
+          headers: this.getHeaders(),
+          params: { 
+            per_page: perPage,
+            page: page,
+            _fields: 'id,title,status,date,modified,slug,type'
+          },
+        })
+        
+        const posts = response.data
+        if (posts && posts.length > 0) {
+          allPosts.push(...posts)
+          // Check if there are more pages
+          const totalPages = parseInt(response.headers['x-wp-totalpages'] || '1', 10)
+          hasMore = page < totalPages
+          page++
+        } else {
+          hasMore = false
+        }
+      }
+
+      return allPosts
+    } catch (error) {
+      console.error('Error fetching all WordPress posts:', error)
+      throw error
+    }
+  }
+
   async getPostsCount(): Promise<number> {
     try {
       const response = await axios.get(`${this.baseUrl}/wp-json/wp/v2/posts`, {

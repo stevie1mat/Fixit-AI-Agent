@@ -181,8 +181,99 @@ WordPress Site Connected:
     let aiResponse = ''
     const grokApiKey = process.env.GROK_API_KEY
     
-    // Try to use Grok AI if API key is available
+    // Use AI to understand user intent and determine action
+    let detectedIntent = 'general'
+    let shouldExecuteAction = false
+    
     if (grokApiKey && userId && contextManager) {
+      try {
+        // First, use AI to understand intent
+        const intentPrompt = `Analyze this user message and determine their intent. Respond with ONLY a JSON object containing:
+{
+  "intent": "scan_wordpress" | "list_plugins" | "list_posts" | "check_connection" | "optimize" | "help" | "general",
+  "storeType": "wordpress" | "shopify" | null,
+  "action": "scan" | "list_plugins" | "list_posts" | "test_connection" | "get_info" | "help" | null,
+  "needsData": true | false
+}
+
+User message: "${message}"
+Current store type: ${storeType}
+Has connection: ${!!connection}
+
+Examples:
+- "scan my wordpress site" → {"intent": "scan_wordpress", "storeType": "wordpress", "action": "scan", "needsData": true}
+- "check plugins" → {"intent": "list_plugins", "storeType": "wordpress", "action": "list_plugins", "needsData": true}
+- "list all posts" → {"intent": "list_posts", "storeType": "wordpress", "action": "list_posts", "needsData": true}
+- "how many posts" → {"intent": "get_info", "storeType": "wordpress", "action": "get_info", "needsData": true}
+- "help with wordpress" → {"intent": "help", "storeType": "wordpress", "action": "help", "needsData": false}
+
+Respond with ONLY the JSON object, no other text:`
+
+        const intentResponse = await fetch('https://api.x.ai/v1/chat/completions', {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${grokApiKey}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            model: 'grok-beta',
+            messages: [
+              {
+                role: 'system',
+                content: 'You are an intent classifier. Always respond with valid JSON only, no other text.'
+              },
+              {
+                role: 'user',
+                content: intentPrompt
+              }
+            ],
+            temperature: 0.3,
+            max_tokens: 200
+          })
+        })
+
+        if (intentResponse.ok) {
+          const intentData = await intentResponse.json()
+          const intentText = intentData.choices[0]?.message?.content || '{}'
+          
+          try {
+            // Clean up the response to extract JSON
+            const jsonMatch = intentText.match(/\{[\s\S]*\}/)
+            if (jsonMatch) {
+              const intentResult = JSON.parse(jsonMatch[0])
+              detectedIntent = intentResult.intent || 'general'
+              shouldExecuteAction = intentResult.needsData === true
+              
+              console.log('Detected intent:', detectedIntent, 'Action:', intentResult.action)
+            }
+          } catch (parseError) {
+            console.error('Error parsing intent JSON:', parseError)
+          }
+        }
+      } catch (error) {
+        console.error('Error detecting intent with AI:', error)
+        // Fall back to keyword matching
+      }
+    } else {
+      // Fallback keyword-based intent detection if AI not available
+      const lowerMessage = message.toLowerCase()
+      if (lowerMessage.includes('plugin') || lowerMessage.includes('plugins')) {
+        detectedIntent = 'list_plugins'
+        shouldExecuteAction = true
+      } else if (lowerMessage.includes('scan') && (lowerMessage.includes('wordpress') || lowerMessage.includes('site'))) {
+        detectedIntent = 'scan_wordpress'
+        shouldExecuteAction = true
+      } else if ((lowerMessage.includes('list') && lowerMessage.includes('post')) || (lowerMessage.includes('all') && lowerMessage.includes('post'))) {
+        detectedIntent = 'list_posts'
+        shouldExecuteAction = true
+      } else if (lowerMessage.includes('post') || lowerMessage.includes('page')) {
+        detectedIntent = 'get_info'
+        shouldExecuteAction = true
+      }
+    }
+    
+    // Try to use Grok AI for response generation if API key is available
+    if (grokApiKey && userId && contextManager && !shouldExecuteAction) {
       try {
         const grokIntegration = new GrokIntegration(
           { apiKey: grokApiKey },
@@ -206,7 +297,173 @@ WordPress Site Connected:
       }
     }
     
-    // Fallback to template responses if Grok wasn't used
+    // Execute actions based on detected intent
+    if (shouldExecuteAction && connection && storeType === 'wordpress') {
+      const username = connection.username || (connection as any).username
+      const appPassword = connection.app_password || connection.appPassword || (connection as any).appPassword
+      const storeUrl = connection.url
+      
+      if (username && appPassword && storeUrl) {
+        try {
+          const wordpress = new WordPressAPI(storeUrl, username, appPassword)
+          
+          if (detectedIntent === 'list_plugins' || detectedIntent === 'check_plugins' || message.toLowerCase().includes('plugin')) {
+            // Fetch and list plugins
+            const isConnected = await wordpress.testConnection()
+            if (!isConnected) {
+              aiResponse = `❌ Cannot fetch plugins - connection test failed. Please check your WordPress credentials.`
+            } else {
+              const plugins = await wordpress.getPlugins().catch(() => [])
+              const activePlugins = Array.isArray(plugins) ? plugins.filter((p: any) => p.status === 'active') : []
+              const inactivePlugins = Array.isArray(plugins) ? plugins.filter((p: any) => p.status === 'inactive') : []
+              
+              if (Array.isArray(plugins) && plugins.length > 0) {
+                aiResponse = `**Plugin Summary:**\n`
+                aiResponse += `- **Total Plugins:** ${plugins.length}\n`
+                aiResponse += `- **Active Plugins:** ${activePlugins.length}\n`
+                aiResponse += `- **Inactive Plugins:** ${inactivePlugins.length}\n\n`
+                
+                if (activePlugins.length > 0) {
+                  aiResponse += `**Active Plugins (${activePlugins.length}):**\n`
+                  activePlugins.forEach((p: any, index: number) => {
+                    const name = p.name || p.plugin || 'Unknown Plugin'
+                    const version = p.version ? ` (v${p.version})` : ''
+                    aiResponse += `${index + 1}. **${name}**${version}\n`
+                  })
+                  aiResponse += `\n`
+                }
+                
+                if (inactivePlugins.length > 0) {
+                  aiResponse += `**Inactive Plugins (${inactivePlugins.length}):**\n`
+                  inactivePlugins.slice(0, 20).forEach((p: any, index: number) => {
+                    const name = p.name || p.plugin || 'Unknown Plugin'
+                    const version = p.version ? ` (v${p.version})` : ''
+                    aiResponse += `${index + 1}. ${name}${version}\n`
+                  })
+                  if (inactivePlugins.length > 20) {
+                    aiResponse += `... and ${inactivePlugins.length - 20} more\n`
+                  }
+                }
+              } else {
+                aiResponse = `No plugins found on your WordPress site.`
+              }
+            }
+          } else if (detectedIntent === 'list_posts' || (message.toLowerCase().includes('list') && message.toLowerCase().includes('post'))) {
+            // Fetch and list all posts with their states
+            const isConnected = await wordpress.testConnection()
+            if (!isConnected) {
+              aiResponse = `❌ Cannot fetch posts - connection test failed. Please check your WordPress credentials.`
+            } else {
+              try {
+                const allPosts = await wordpress.getAllPosts()
+                
+                if (Array.isArray(allPosts) && allPosts.length > 0) {
+                  // Group posts by status
+                  const postsByStatus: Record<string, any[]> = {}
+                  allPosts.forEach((post: any) => {
+                    const status = post.status || 'unknown'
+                    if (!postsByStatus[status]) {
+                      postsByStatus[status] = []
+                    }
+                    postsByStatus[status].push(post)
+                  })
+                  
+                  aiResponse = `**All Posts (${allPosts.length} total):**\n\n`
+                  
+                  // Display posts grouped by status
+                  const statusOrder = ['publish', 'draft', 'pending', 'private', 'future', 'trash']
+                  statusOrder.forEach(status => {
+                    if (postsByStatus[status] && postsByStatus[status].length > 0) {
+                      const statusLabel = status.charAt(0).toUpperCase() + status.slice(1)
+                      aiResponse += `**${statusLabel} (${postsByStatus[status].length}):**\n`
+                      postsByStatus[status].forEach((post: any, index: number) => {
+                        const title = post.title?.rendered || post.title || 'Untitled'
+                        const date = post.date ? new Date(post.date).toLocaleDateString() : 'No date'
+                        const id = post.id || 'N/A'
+                        aiResponse += `${index + 1}. [ID: ${id}] **${title}** - ${date}\n`
+                      })
+                      aiResponse += `\n`
+                    }
+                  })
+                  
+                  // Show any posts with other statuses
+                  Object.keys(postsByStatus).forEach(status => {
+                    if (!statusOrder.includes(status)) {
+                      aiResponse += `**${status} (${postsByStatus[status].length}):**\n`
+                      postsByStatus[status].forEach((post: any, index: number) => {
+                        const title = post.title?.rendered || post.title || 'Untitled'
+                        const date = post.date ? new Date(post.date).toLocaleDateString() : 'No date'
+                        const id = post.id || 'N/A'
+                        aiResponse += `${index + 1}. [ID: ${id}] **${title}** - ${date}\n`
+                      })
+                      aiResponse += `\n`
+                    }
+                  })
+                } else {
+                  aiResponse = `No posts found on your WordPress site.`
+                }
+              } catch (fetchError) {
+                console.error('Error fetching all posts:', fetchError)
+                aiResponse = `❌ Error fetching posts: ${fetchError instanceof Error ? fetchError.message : 'Unknown error'}`
+              }
+            }
+          } else if (detectedIntent === 'scan_wordpress' || detectedIntent === 'scan') {
+            // Perform WordPress scan
+            const isConnected = await wordpress.testConnection()
+            if (!isConnected) {
+              aiResponse = `❌ Cannot scan - connection test failed. Please check your WordPress credentials.`
+            } else {
+              const [posts, pages, plugins, theme, postsCount, pagesCount] = await Promise.all([
+                wordpress.getPosts(5).catch(() => []),
+                wordpress.getPages(5).catch(() => []),
+                wordpress.getPlugins().catch(() => []),
+                wordpress.getTheme().catch(() => null),
+                wordpress.getPostsCount().catch(() => 0),
+                wordpress.getPagesCount().catch(() => 0)
+              ])
+              
+              aiResponse = `✅ **WordPress Site Scan Complete!**\n\n`
+              aiResponse += `**Site Overview:**\n`
+              aiResponse += `- Site URL: ${storeUrl}\n`
+              aiResponse += `- Total Posts: **${postsCount}**\n`
+              aiResponse += `- Total Pages: **${pagesCount}**\n`
+              
+              if (theme) {
+                aiResponse += `- Active Theme: **${theme.name || 'Unknown'}**\n`
+                if (theme.version) aiResponse += `- Theme Version: ${theme.version}\n`
+              }
+              
+              const activePlugins = Array.isArray(plugins) ? plugins.filter((p: any) => p.status === 'active') : []
+              if (Array.isArray(plugins)) {
+                aiResponse += `- Total Plugins: **${plugins.length}** (${activePlugins.length} active)\n`
+              }
+              
+              aiResponse += `\n✅ **Connection verified and site scanned successfully!**`
+            }
+          } else if (detectedIntent === 'get_info' && (message.toLowerCase().includes('post') || message.toLowerCase().includes('page'))) {
+            // Get posts/pages info
+            const isConnected = await wordpress.testConnection()
+            if (!isConnected) {
+              aiResponse = `❌ Cannot fetch info - connection test failed.`
+            } else {
+              const [postsCount, pagesCount] = await Promise.all([
+                wordpress.getPostsCount().catch(() => 0),
+                wordpress.getPagesCount().catch(() => 0)
+              ])
+              
+              aiResponse = `**WordPress Site Information:**\n\n`
+              aiResponse += `- 📝 Total Posts: **${postsCount}**\n`
+              aiResponse += `- 📄 Total Pages: **${pagesCount}**\n`
+            }
+          }
+        } catch (actionError) {
+          console.error('Error executing action:', actionError)
+          aiResponse = `I encountered an error: ${actionError instanceof Error ? actionError.message : 'Unknown error'}. Please check your WordPress connection.`
+        }
+      }
+    }
+    
+    // Fallback to template responses if Grok wasn't used and no action was executed
     if (!aiResponse) {
       if (contextManager) {
         // Generate context-aware prompt
@@ -288,7 +545,7 @@ What would you like to work on today?`
                     aiResponse += `Just say "scan everything" or "full scan" to proceed!`
                     
                     // Update store info with basic connection confirmation
-                    storeInfo = `WordPress site connected successfully. Found ${totalPosts.length > 0 ? totalPosts.length : (posts.length > 0 ? '1+' : '0')} posts.`
+                    storeInfo = `WordPress site connected successfully. Found ${postsCount} posts and ${pagesCount} pages.`
                   }
                 } catch (testError) {
                   console.error('Error testing WordPress connection:', testError)
@@ -401,6 +658,91 @@ What would you like to work on today?`
             }
           } else {
             aiResponse = `Please connect your WordPress site first in Settings before performing a full scan.`
+          }
+        } else if (isWordPress && (lowerMessage.includes('plugin') || lowerMessage.includes('plugins'))) {
+          // Handle plugin queries - fetch and list plugins
+          if (connection && storeType === 'wordpress') {
+            try {
+              const username = connection.username || (connection as any).username
+              const appPassword = connection.app_password || connection.appPassword || (connection as any).appPassword
+              const storeUrl = connection.url
+              
+              if (username && appPassword && storeUrl) {
+                const wordpress = new WordPressAPI(storeUrl, username, appPassword)
+                
+                // Test connection first
+                const isConnected = await wordpress.testConnection()
+                if (!isConnected) {
+                  aiResponse = `❌ Cannot fetch plugins - connection test failed. Please check your WordPress credentials.`
+                } else {
+                  aiResponse = `🔍 **Fetching your WordPress plugins...**\n\n`
+                  
+                  // Get plugins
+                  const plugins = await wordpress.getPlugins().catch(() => [])
+                  const activePlugins = Array.isArray(plugins) ? plugins.filter((p: any) => p.status === 'active') : []
+                  const inactivePlugins = Array.isArray(plugins) ? plugins.filter((p: any) => p.status === 'inactive') : []
+                  
+                  if (!Array.isArray(plugins) || plugins.length === 0) {
+                    aiResponse += `No plugins found or unable to fetch plugin information.`
+                  } else {
+                    aiResponse += `**Plugin Summary:**\n`
+                    aiResponse += `- **Total Plugins:** ${plugins.length}\n`
+                    aiResponse += `- **Active Plugins:** ${activePlugins.length}\n`
+                    aiResponse += `- **Inactive Plugins:** ${inactivePlugins.length}\n\n`
+                    
+                    if (activePlugins.length > 0) {
+                      aiResponse += `**Active Plugins (${activePlugins.length}):**\n`
+                      activePlugins.forEach((p: any, index: number) => {
+                        const name = p.name || p.plugin || 'Unknown Plugin'
+                        const version = p.version ? ` (v${p.version})` : ''
+                        const author = p.author ? ` by ${p.author}` : ''
+                        aiResponse += `${index + 1}. **${name}**${version}${author}\n`
+                      })
+                      aiResponse += `\n`
+                    }
+                    
+                    if (inactivePlugins.length > 0 && inactivePlugins.length <= 20) {
+                      aiResponse += `**Inactive Plugins (${inactivePlugins.length}):**\n`
+                      inactivePlugins.forEach((p: any, index: number) => {
+                        const name = p.name || p.plugin || 'Unknown Plugin'
+                        const version = p.version ? ` (v${p.version})` : ''
+                        aiResponse += `${index + 1}. ${name}${version}\n`
+                      })
+                      aiResponse += `\n`
+                    } else if (inactivePlugins.length > 20) {
+                      aiResponse += `**Inactive Plugins (${inactivePlugins.length} - showing first 20):**\n`
+                      inactivePlugins.slice(0, 20).forEach((p: any, index: number) => {
+                        const name = p.name || p.plugin || 'Unknown Plugin'
+                        const version = p.version ? ` (v${p.version})` : ''
+                        aiResponse += `${index + 1}. ${name}${version}\n`
+                      })
+                      aiResponse += `... and ${inactivePlugins.length - 20} more inactive plugins\n\n`
+                    }
+                    
+                    aiResponse += `**Recommendations:**\n`
+                    if (activePlugins.length > 20) {
+                      aiResponse += `- ⚠️ You have ${activePlugins.length} active plugins. Consider reviewing if all are necessary, as too many plugins can slow down your site.\n`
+                    }
+                    if (inactivePlugins.length > 10) {
+                      aiResponse += `- 🗑️ You have ${inactivePlugins.length} inactive plugins. Consider deleting unused plugins to improve security and reduce clutter.\n`
+                    }
+                    if (activePlugins.length <= 20 && inactivePlugins.length <= 10) {
+                      aiResponse += `- ✅ Your plugin setup looks good! I can help optimize their performance if needed.\n`
+                    }
+                    aiResponse += `\nWould you like me to analyze any specific plugins or suggest performance improvements?`
+                  }
+                }
+              } else {
+                aiResponse = `I need your WordPress credentials to fetch plugin information. Please ensure your WordPress site is properly connected in Settings with your username and application password.`
+              }
+            } catch (error) {
+              console.error('Error fetching plugins:', error)
+              aiResponse = `I encountered an error while fetching your plugins:\n\n`
+              aiResponse += `**Error:** ${error instanceof Error ? error.message : 'Unknown error'}\n\n`
+              aiResponse += `Please check your WordPress connection settings.`
+            }
+          } else {
+            aiResponse = `Please connect your WordPress site first in Settings to view plugin information.`
           }
         } else if (lowerMessage.includes('wordpress') || lowerMessage.includes('what can you help') || lowerMessage.includes('what can you do')) {
           // WordPress-specific help
