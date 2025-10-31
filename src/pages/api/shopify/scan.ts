@@ -25,23 +25,26 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     // Perform different types of scans based on request
     switch (scanType) {
-      case 'products':
+      case 'products': {
         const products = await shopify.getProducts(50)
         scanData.products = products
         break
+      }
 
-      case 'themes':
+      case 'themes': {
         const themes = await shopify.getThemes()
         scanData.themes = themes
         break
+      }
 
-      case 'shipping':
+      case 'shipping': {
         const shippingZones = await shopify.getShippingZones()
         scanData.shippingZones = shippingZones
         break
+      }
 
       case 'full':
-      default:
+      default: {
         // Perform comprehensive scan
         const [products, themes, shippingZones] = await Promise.all([
           shopify.getProducts(50),
@@ -56,6 +59,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           scanTimestamp: new Date().toISOString(),
         }
         break
+      }
     }
 
     res.status(200).json({
