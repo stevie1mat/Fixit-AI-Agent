@@ -53,8 +53,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     // If no database connection found, fall back to frontend data
     if (!connection && storeData && storeData.connections && storeData.connections.length > 0) {
-      connection = storeData.connections.find(conn => conn.accessToken) || storeData.connections[0]
-      storeType = connection.type as 'shopify' | 'wordpress'
+      connection = storeData.connections.find((conn: any) => conn.accessToken) || storeData.connections[0]
+      storeType = connection?.type as 'shopify' | 'wordpress'
       console.log('Using frontend store data as fallback')
     }
 
