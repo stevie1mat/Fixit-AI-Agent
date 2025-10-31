@@ -54,33 +54,30 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
                   variant="outline" 
                   size="sm" 
                   className="w-full justify-start text-gray-600 hover:text-gray-900 border-gray-300 hover:border-gray-400"
-                  asChild
                 >
-                  <a href="/settings" onClick={onClose}>
+                  <a href="/settings" onClick={onClose} className="flex items-center">
                     <Store className="h-4 w-4 mr-2" />
-                    Connect Store
+                    <span>Connect Store</span>
                   </a>
                 </Button>
                 <Button 
                   variant="outline" 
                   size="sm" 
                   className="w-full justify-start text-gray-600 hover:text-gray-900 border-gray-300 hover:border-gray-400"
-                  asChild
                 >
-                  <a href="/settings" onClick={onClose}>
+                  <a href="/settings" onClick={onClose} className="flex items-center">
                     <Settings className="h-4 w-4 mr-2" />
-                    Settings
+                    <span>Settings</span>
                   </a>
                 </Button>
                 <Button 
                   variant="outline" 
                   size="sm" 
                   className="w-full justify-start text-gray-600 hover:text-gray-900 border-gray-300 hover:border-gray-400"
-                  asChild
                 >
-                  <a href="/logs" onClick={onClose}>
+                  <a href="/logs" onClick={onClose} className="flex items-center">
                     <History className="h-4 w-4 mr-2" />
-                    View Logs
+                    <span>View Logs</span>
                   </a>
                 </Button>
               </div>
@@ -90,7 +87,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
             <div className="px-6 py-4 border-b border-gray-100">
               <div className="flex items-center justify-between mb-3">
                 <h3 className="text-sm font-bold text-gray-800">Store Connections</h3>
-                <Button variant="ghost" size="sm" asChild className="text-gray-600 hover:text-gray-900">
+                <Button variant="ghost" size="sm" className="text-gray-600 hover:text-gray-900">
                   <a href="/settings" onClick={onClose}>
                     <Plus className="h-4 w-4" />
                   </a>

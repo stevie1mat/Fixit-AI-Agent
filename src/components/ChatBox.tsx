@@ -157,8 +157,8 @@ export function ChatBox() {
       {/* Messages */}
       <div className="flex-1 overflow-y-auto p-8 space-y-6">
         {messages.length === 0 ? (
-          <div className="flex items-center justify-center h-full text-center">
-            <div className="max-w-md">
+            <div className="flex items-center justify-center h-full text-center">
+              <div className="max-w-md">
               <Bot className="h-12 w-12 mx-auto mb-4 text-gray-400" />
               <h3 className="text-lg font-semibold mb-2 text-gray-800">Welcome to Fix It AI</h3>
               <p className="text-gray-600 mb-4">
