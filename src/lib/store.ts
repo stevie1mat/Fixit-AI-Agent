@@ -1,5 +1,5 @@
 import { create } from 'zustand'
-import { persist } from 'zustand/middleware'
+import { persist, createJSONStorage } from 'zustand/middleware'
 
 // Helper function to generate UUID
 function generateId(): string {
@@ -124,32 +124,14 @@ export const useAppStore = create<AppState>()(
         messages: state.messages,
         connections: state.connections,
       }),
-      // Add safe storage configuration
-      storage: isBrowser ? {
-        getItem: (name) => {
-          try {
-            const item = localStorage.getItem(name)
-            return item ? JSON.parse(item) : null
-          } catch (error) {
-            console.warn('Error reading from localStorage:', error)
-            return null
-          }
-        },
-        setItem: (name, value) => {
-          try {
-            localStorage.setItem(name, JSON.stringify(value))
-          } catch (error) {
-            console.warn('Error writing to localStorage:', error)
-          }
-        },
-        removeItem: (name) => {
-          try {
-            localStorage.removeItem(name)
-          } catch (error) {
-            console.warn('Error removing from localStorage:', error)
-          }
-        },
-      } : undefined,
+      // Use createJSONStorage with safe localStorage access
+      storage: isBrowser 
+        ? createJSONStorage(() => localStorage)
+        : createJSONStorage(() => ({
+            getItem: () => null,
+            setItem: () => {},
+            removeItem: () => {},
+          })),
     }
   )
 )

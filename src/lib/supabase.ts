@@ -1,9 +1,21 @@
 import { createClient } from '@supabase/supabase-js'
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
 
-export const supabase = createClient(supabaseUrl, supabaseAnonKey)
+// Check if environment variables are set
+if (!supabaseUrl || !supabaseAnonKey) {
+  console.error('❌ Supabase environment variables are missing!')
+  console.error('Please add the following to your .env.local file:')
+  console.error('NEXT_PUBLIC_SUPABASE_URL=your_supabase_project_url')
+  console.error('NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key')
+}
+
+// Create client only if environment variables are available
+// This prevents runtime errors if env vars are missing
+export const supabase = supabaseUrl && supabaseAnonKey 
+  ? createClient(supabaseUrl, supabaseAnonKey)
+  : createClient('https://placeholder.supabase.co', 'placeholder-key')
 
 export type Database = {
   public: {
