@@ -6,6 +6,7 @@ import { useAuth } from '@/contexts/AuthContext'
 import { Button } from '@/components/ui/Button'
 import { Send, Loader2, Bot, User, Sparkles, Zap, Settings, Trash2 } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import ReactMarkdown from 'react-markdown'
 
 export function ChatBox() {
   const [input, setInput] = useState('')
@@ -229,9 +230,31 @@ export function ChatBox() {
                     : 'bg-white border border-gray-200'
                 )}
               >
-                <div className="whitespace-pre-wrap font-urbanist font-light leading-relaxed">
-                  {message.content}
-                </div>
+                {message.role === 'assistant' ? (
+                  <div className="font-urbanist font-light leading-relaxed text-gray-700
+                    [&>*]:my-2 [&>*:first-child]:mt-0 [&>*:last-child]:mb-0
+                    [&_strong]:font-medium [&_strong]:text-gray-900
+                    [&_code]:bg-gray-100 [&_code]:px-1.5 [&_code]:py-0.5 [&_code]:rounded [&_code]:text-sm [&_code]:font-mono [&_code]:text-gray-800
+                    [&_ul]:my-3 [&_ul]:pl-6 [&_ul]:list-disc
+                    [&_ol]:my-3 [&_ol]:pl-6 [&_ol]:list-decimal
+                    [&_li]:my-1 [&_li]:text-gray-700
+                    [&_em]:italic
+                    [&_h1]:text-xl [&_h1]:font-medium [&_h1]:mb-2 [&_h1]:mt-4 [&_h1]:text-gray-900
+                    [&_h2]:text-lg [&_h2]:font-medium [&_h2]:mb-2 [&_h2]:mt-4 [&_h2]:text-gray-900
+                    [&_h3]:text-base [&_h3]:font-medium [&_h3]:mb-2 [&_h3]:mt-3 [&_h3]:text-gray-900
+                    [&_a]:text-gray-900 [&_a]:underline [&_a:hover]:text-gray-700">
+                    <ReactMarkdown
+                      remarkPlugins={[]}
+                      rehypePlugins={[]}
+                    >
+                      {message.content}
+                    </ReactMarkdown>
+                  </div>
+                ) : (
+                  <div className="whitespace-pre-wrap font-urbanist font-light leading-relaxed">
+                    {message.content}
+                  </div>
+                )}
                 <div className={cn(
                   "text-xs mt-3 font-urbanist font-light",
                   message.role === 'user' ? 'text-gray-300' : 'text-gray-500'

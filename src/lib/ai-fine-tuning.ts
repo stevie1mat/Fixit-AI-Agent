@@ -47,7 +47,7 @@ export class AIFineTuningService {
       )
 
       // Also save to training examples table
-      const { error } =         await supabase
+      const { error } = await supabase
           .from('AITrainingExample')
           .insert({
             input,
@@ -56,11 +56,14 @@ export class AIFineTuningService {
             category,
             storeType,
             storeUrl,
-            userId: this.contextManager['userId']
+            userId: this.contextManager['userId'],
+            isVerified: true // Auto-verify training data from real conversations
           })
 
       if (error) {
         console.error('Error saving training data:', error)
+      } else {
+        console.log('Training data saved successfully:', { input: input.substring(0, 50) + '...', category, storeType })
       }
     } catch (error) {
       console.error('Error collecting training data:', error)
@@ -264,15 +267,20 @@ ${recommendations?.javascript || 'Focus on reducing JavaScript execution time an
   async getTrainingDataForFineTuning(
     storeType?: 'shopify' | 'wordpress',
     category?: string,
-    limit: number = 1000
+    limit: number = 1000,
+    verifiedOnly: boolean = false
   ) {
     try {
       let query = supabase
         .from('AITrainingExample')
         .select('*')
-        .eq('isVerified', true)
+        .eq('userId', this.contextManager['userId'])
         .order('createdAt', { ascending: false })
         .limit(limit)
+
+      if (verifiedOnly) {
+        query = query.eq('isVerified', true)
+      }
 
       if (storeType) {
         query = query.eq('storeType', storeType)
@@ -399,7 +407,7 @@ ${recommendations?.javascript || 'Focus on reducing JavaScript execution time an
   // Export training data for external AI fine-tuning
   async exportTrainingDataForFineTuning(): Promise<string> {
     try {
-      const trainingData = await this.getTrainingDataForFineTuning()
+      const trainingData = await this.getTrainingDataForFineTuning(undefined, undefined, 1000, true)
       
       const formattedData = trainingData.map(example => ({
         messages: [

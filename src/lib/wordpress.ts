@@ -60,6 +60,21 @@ export class WordPressAPI {
     }
   }
 
+  async getPostsCount(): Promise<number> {
+    try {
+      const response = await axios.get(`${this.baseUrl}/wp-json/wp/v2/posts`, {
+        headers: this.getHeaders(),
+        params: { per_page: 1 },
+      })
+      // WordPress REST API returns total count in X-WP-Total header
+      const totalCount = parseInt(response.headers['x-wp-total'] || '0', 10)
+      return totalCount
+    } catch (error) {
+      console.error('Error fetching WordPress posts count:', error)
+      return 0
+    }
+  }
+
   async getPost(id: number): Promise<WordPressPost> {
     try {
       const response = await axios.get(`${this.baseUrl}/wp-json/wp/v2/posts/${id}`, {
@@ -94,6 +109,21 @@ export class WordPressAPI {
     } catch (error) {
       console.error('Error fetching WordPress pages:', error)
       throw error
+    }
+  }
+
+  async getPagesCount(): Promise<number> {
+    try {
+      const response = await axios.get(`${this.baseUrl}/wp-json/wp/v2/pages`, {
+        headers: this.getHeaders(),
+        params: { per_page: 1 },
+      })
+      // WordPress REST API returns total count in X-WP-Total header
+      const totalCount = parseInt(response.headers['x-wp-total'] || '0', 10)
+      return totalCount
+    } catch (error) {
+      console.error('Error fetching WordPress pages count:', error)
+      return 0
     }
   }
 

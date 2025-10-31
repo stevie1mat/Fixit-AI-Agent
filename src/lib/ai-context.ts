@@ -231,7 +231,7 @@ ${recentOptimizations.map(opt =>
     storeUrl?: string
   ) {
     try {
-      const { error } =         await supabase
+      const { error } = await supabase
           .from('AITrainingExample')
           .insert({
             input,
@@ -240,11 +240,14 @@ ${recentOptimizations.map(opt =>
             category,
             storeType,
             storeUrl,
-            userId: this.userId
+            userId: this.userId,
+            isVerified: true // Auto-verify training data from real conversations
           })
 
       if (error) {
         console.error('Error saving training example:', error)
+      } else {
+        console.log('Training example saved in context manager:', { input: input.substring(0, 50) + '...', category, storeType })
       }
     } catch (error) {
       console.error('Error saving training example:', error)
