@@ -1,6 +1,5 @@
 import { NextApiRequest, NextApiResponse } from 'next'
 import { supabase } from '@/lib/supabase'
-import { AIContextManager } from '@/lib/ai-context'
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   try {
@@ -11,18 +10,25 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     }
 
     if (req.method === 'GET') {
-      // Get messages from AIContextWindow
+      // Get messages from Supabase (works on Vercel)
       try {
         const { data: contextData, error } = await supabase
           .from('AIContextWindow')
           .select('recentMessages')
           .eq('userId', userId)
-          .single()
+          .maybeSingle()
 
-        if (error && error.code !== 'PGRST116') {
-          // PGRST116 is "not found" which is okay
+        if (error) {
           console.error('Error fetching messages:', error)
-          return res.status(500).json({ error: 'Failed to fetch messages' })
+          // If table doesn't exist, return empty array instead of error
+          if (error.code === 'PGRST116' || error.message?.includes('does not exist')) {
+            return res.status(200).json({ messages: [] })
+          }
+          return res.status(500).json({ 
+            error: 'Failed to fetch messages',
+            details: error.message || 'Unknown error',
+            code: error.code
+          })
         }
 
         if (contextData && contextData.recentMessages) {
@@ -33,13 +39,21 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         return res.status(200).json({ messages: [] })
       } catch (error) {
         console.error('Error in GET /api/messages:', error)
-        return res.status(500).json({ error: 'Internal server error' })
+        return res.status(500).json({ 
+          error: 'Internal server error',
+          details: error instanceof Error ? error.message : 'Unknown error'
+        })
       }
     }
 
     if (req.method === 'POST') {
-      // Save messages to AIContextWindow
-      const { messages } = req.body
+      // Save messages to Supabase (works on Vercel)
+      const { userId: bodyUserId, messages } = req.body
+
+      // For POST, userId must come from request body (not query)
+      if (!bodyUserId || typeof bodyUserId !== 'string') {
+        return res.status(400).json({ error: 'User ID is required' })
+      }
 
       if (!Array.isArray(messages)) {
         return res.status(400).json({ error: 'Messages must be an array' })
@@ -56,46 +70,63 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         // Keep only last 20 messages (matching AIContextManager limit)
         const recentMessages = conversations.slice(-20)
 
-        const contextManager = new AIContextManager(userId)
-        await contextManager.loadContext()
-
-        // Update the context manager's conversations
-        // Clear existing and add new ones
+        // Get existing context to preserve other fields
         const { data: existing } = await supabase
           .from('AIContextWindow')
           .select('*')
-          .eq('userId', userId)
-          .single()
+          .eq('userId', bodyUserId)
+          .maybeSingle()
 
-        // Use upsert to save
+        // Use upsert to save (preserves existing fields if they exist)
+        const upsertData: any = {
+          userId: bodyUserId,
+          recentMessages: JSON.stringify(recentMessages),
+          updatedAt: new Date().toISOString(),
+        }
+
+        // Preserve existing fields if they exist
+        if (existing) {
+          upsertData.storeConnectionId = existing.storeConnectionId || null
+          upsertData.currentIssues = existing.currentIssues || JSON.stringify([])
+          upsertData.optimizationHistory = existing.optimizationHistory || JSON.stringify([])
+          upsertData.storeData = existing.storeData || null
+        } else {
+          upsertData.storeConnectionId = null
+          upsertData.currentIssues = JSON.stringify([])
+          upsertData.optimizationHistory = JSON.stringify([])
+          upsertData.storeData = null
+        }
+
         const { error: saveError } = await supabase
           .from('AIContextWindow')
-          .upsert({
-            userId,
-            recentMessages: JSON.stringify(recentMessages),
-            storeConnectionId: existing?.storeConnectionId || null,
-            currentIssues: existing?.currentIssues || JSON.stringify([]),
-            optimizationHistory: existing?.optimizationHistory || JSON.stringify([]),
-            storeData: existing?.storeData || null,
-            updatedAt: new Date().toISOString(),
-          })
+          .upsert(upsertData)
 
         if (saveError) {
           console.error('Error saving messages:', saveError)
-          return res.status(500).json({ error: 'Failed to save messages' })
+          return res.status(500).json({ 
+            error: 'Failed to save messages',
+            details: saveError.message || 'Unknown error',
+            code: saveError.code
+          })
         }
 
         return res.status(200).json({ success: true, messageCount: recentMessages.length })
       } catch (error) {
         console.error('Error in POST /api/messages:', error)
-        return res.status(500).json({ error: 'Internal server error' })
+        return res.status(500).json({ 
+          error: 'Failed to save messages',
+          details: error instanceof Error ? error.message : 'Unknown error'
+        })
       }
     }
 
     return res.status(405).json({ error: 'Method not allowed' })
   } catch (error) {
     console.error('Messages API error:', error)
-    return res.status(500).json({ error: 'Internal server error' })
+    return res.status(500).json({ 
+      error: 'Internal server error',
+      details: error instanceof Error ? error.message : 'Unknown error'
+    })
   }
 }
 
