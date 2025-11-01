@@ -9,6 +9,7 @@ import { LoginDialog } from '@/components/LoginDialog'
 import { ProtectedRoute } from '@/components/ProtectedRoute'
 import { useAppStore } from '@/lib/store'
 import { useAuth } from '@/contexts/AuthContext'
+import { useMessageSync } from '@/hooks/useMessageSync'
 import { Button } from '@/components/ui/Button'
 import { Settings, History, Zap, LogOut, User } from 'lucide-react'
 
@@ -17,6 +18,9 @@ export default function Home() {
   const [loginDialogOpen, setLoginDialogOpen] = useState(false)
   const { currentPreview, connections } = useAppStore()
   const { user, signOut, loading } = useAuth()
+  
+  // Sync messages with backend
+  useMessageSync()
 
 
 

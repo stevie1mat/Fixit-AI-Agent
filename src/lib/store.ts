@@ -1,5 +1,6 @@
 import { create } from 'zustand'
 import { persist, createJSONStorage } from 'zustand/middleware'
+import { fetchMessagesFromBackend, saveMessagesToBackend } from './messages'
 
 // Helper function to generate UUID
 function generateId(): string {
@@ -41,6 +42,7 @@ interface AppState {
   // Chat state
   messages: Message[]
   isLoading: boolean
+  isLoaded: boolean // Track if messages have been loaded from backend
   
   // Store connections
   connections: StoreConnection[]
@@ -53,6 +55,10 @@ interface AppState {
   updateLastMessage: (content: string) => void
   setLoading: (loading: boolean) => void
   clearMessages: () => void
+  setMessages: (messages: Message[]) => void
+  setLoaded: (loaded: boolean) => void
+  loadMessagesFromBackend: (userId: string) => Promise<void>
+  saveMessagesToBackend: (userId: string) => Promise<void>
   addConnection: (connection: Omit<StoreConnection, 'id'>) => void
   removeConnection: (id: string) => void
   setCurrentPreview: (preview: ChangePreview | null) => void
@@ -63,6 +69,7 @@ export const useAppStore = create<AppState>()(
     (set, get) => ({
       messages: [],
       isLoading: false,
+      isLoaded: false,
       connections: [],
       currentPreview: null,
 
@@ -94,6 +101,59 @@ export const useAppStore = create<AppState>()(
         set({ isLoading: loading })
       },
 
+      setMessages: (messages) => {
+        set({ messages })
+      },
+
+      setLoaded: (loaded) => {
+        set({ isLoaded: loaded })
+      },
+
+      loadMessagesFromBackend: async (userId: string) => {
+        try {
+          // Get current messages from Zustand state (already loaded from localStorage via persist)
+          const currentMessages = get().messages
+
+          // Sync with backend if user is logged in
+          if (userId) {
+            try {
+              const backendMessages = await fetchMessagesFromBackend(userId)
+              if (backendMessages.length > 0) {
+                // Merge backend messages with local (backend takes precedence if different)
+                // Or use backend if local is empty
+                if (currentMessages.length === 0 || backendMessages.length > currentMessages.length) {
+                  set({ messages: backendMessages })
+                  // Zustand persist will automatically save to localStorage
+                }
+              }
+            } catch (backendError) {
+              console.error('Error loading from backend:', backendError)
+              // Continue with local messages if backend fails
+            }
+          }
+
+          set({ isLoaded: true })
+        } catch (error) {
+          console.error('Error loading messages:', error)
+          set({ isLoaded: true })
+        }
+      },
+
+      saveMessagesToBackend: async (userId: string) => {
+        const { messages } = get()
+        if (!userId || messages.length === 0) {
+          return
+        }
+
+        try {
+          await saveMessagesToBackend(userId, messages)
+          console.log('Messages saved successfully to backend')
+        } catch (error) {
+          console.error('Error saving to backend:', error)
+          // Continue - local storage is still saved
+        }
+      },
+
       clearMessages: () => {
         set({ messages: [] })
       },
@@ -121,7 +181,10 @@ export const useAppStore = create<AppState>()(
     {
       name: 'fixit-ai-storage',
       partialize: (state) => ({
-        messages: state.messages,
+        messages: state.messages.map((msg) => ({
+          ...msg,
+          timestamp: msg.timestamp instanceof Date ? msg.timestamp.toISOString() : msg.timestamp,
+        })),
         connections: state.connections,
       }),
       // Use createJSONStorage with safe localStorage access
@@ -132,6 +195,15 @@ export const useAppStore = create<AppState>()(
             setItem: () => {},
             removeItem: () => {},
           })),
+      onRehydrateStorage: () => (state) => {
+        // Convert timestamp strings back to Date objects after rehydration
+        if (state?.messages && Array.isArray(state.messages)) {
+          state.messages = state.messages.map((msg: any) => ({
+            ...msg,
+            timestamp: msg.timestamp ? new Date(msg.timestamp) : new Date(),
+          }))
+        }
+      },
     }
   )
 )
