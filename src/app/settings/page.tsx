@@ -1,17 +1,32 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Button } from '@/components/ui/Button'
-import { Store, Settings, ArrowLeft, Check, X } from 'lucide-react'
+import { Store, Settings, ArrowLeft, Check, X, Trash2 } from 'lucide-react'
 import { useAppStore } from '@/lib/store'
 import { useAuth } from '@/contexts/AuthContext'
 import { ProtectedRoute } from '@/components/ProtectedRoute'
 import { validateShopifyUrl, validateWordPressUrl } from '@/lib/utils'
 
+interface DatabaseConnection {
+  id: string
+  user_id: string
+  type: 'shopify' | 'wordpress'
+  url: string
+  username?: string
+  app_password?: string
+  access_token?: string
+  is_connected: boolean
+  created_at: string
+  updated_at: string
+}
+
 export default function SettingsPage() {
   const [activeTab, setActiveTab] = useState<'shopify' | 'wordpress'>('shopify')
   const [isTesting, setIsTesting] = useState(false)
   const [testResult, setTestResult] = useState<'success' | 'error' | null>(null)
+  const [connections, setConnections] = useState<DatabaseConnection[]>([])
+  const [loadingConnections, setLoadingConnections] = useState(true)
   const { addConnection } = useAppStore()
   const { user } = useAuth()
 
@@ -27,6 +42,54 @@ export default function SettingsPage() {
     username: '',
     appPassword: '',
   })
+
+  // Load connections from database on mount
+  useEffect(() => {
+    if (user?.id) {
+      loadConnections()
+    }
+  }, [user?.id])
+
+  const loadConnections = async () => {
+    if (!user?.id) return
+    
+    setLoadingConnections(true)
+    try {
+      const response = await fetch(`/api/store-connections?userId=${user.id}`)
+      if (response.ok) {
+        const data = await response.json()
+        setConnections(data.connections || [])
+      }
+    } catch (error) {
+      console.error('Error loading connections:', error)
+    } finally {
+      setLoadingConnections(false)
+    }
+  }
+
+  const handleDeleteConnection = async (connectionId: string) => {
+    if (!confirm('Are you sure you want to delete this connection?')) {
+      return
+    }
+
+    try {
+      const response = await fetch(`/api/store-connections?connectionId=${connectionId}`, {
+        method: 'DELETE',
+      })
+
+      if (response.ok) {
+        // Reload connections after delete
+        await loadConnections()
+        alert('Connection deleted successfully')
+      } else {
+        const error = await response.json()
+        alert(`Failed to delete: ${error.error || 'Unknown error'}`)
+      }
+    } catch (error) {
+      console.error('Error deleting connection:', error)
+      alert('Failed to delete connection')
+    }
+  }
 
   const handleShopifySubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -73,6 +136,8 @@ export default function SettingsPage() {
                 accessToken: shopifyForm.accessToken,
               }),
             })
+            // Reload connections to get the real database ID
+            await loadConnections()
           } catch (error) {
             console.error('Failed to store connection in database:', error)
           }
@@ -135,6 +200,8 @@ export default function SettingsPage() {
                 appPassword: wordpressForm.appPassword,
               }),
             })
+            // Reload connections to get the real database ID
+            await loadConnections()
           } catch (error) {
             console.error('Failed to store connection in database:', error)
           }
@@ -210,6 +277,35 @@ export default function SettingsPage() {
                 Connect your Shopify store to enable AI-powered fixes and optimizations.
               </p>
             </div>
+
+            {/* Existing Connections */}
+            {loadingConnections ? (
+              <div className="text-sm text-muted-foreground">Loading connections...</div>
+            ) : (
+              connections.filter(c => c.type === 'shopify').length > 0 && (
+                <div className="space-y-2">
+                  <h3 className="text-sm font-medium">Active Shopify Connections</h3>
+                  {connections.filter(c => c.type === 'shopify').map((conn) => (
+                    <div key={conn.id} className="flex items-center justify-between p-3 border rounded-lg">
+                      <div className="flex-1">
+                        <div className="font-medium">{conn.url}</div>
+                        <div className="text-xs text-muted-foreground">
+                          Connected {new Date(conn.created_at).toLocaleDateString()}
+                        </div>
+                      </div>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => handleDeleteConnection(conn.id)}
+                        className="text-red-600 hover:text-red-700"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  ))}
+                </div>
+              )
+            )}
 
             <form onSubmit={handleShopifySubmit} className="space-y-4">
               <div>
@@ -299,6 +395,36 @@ export default function SettingsPage() {
                 Connect your WordPress site to enable AI-powered fixes and optimizations.
               </p>
             </div>
+
+            {/* Existing Connections */}
+            {loadingConnections ? (
+              <div className="text-sm text-muted-foreground">Loading connections...</div>
+            ) : (
+              connections.filter(c => c.type === 'wordpress').length > 0 && (
+                <div className="space-y-2">
+                  <h3 className="text-sm font-medium">Active WordPress Connections</h3>
+                  {connections.filter(c => c.type === 'wordpress').map((conn) => (
+                    <div key={conn.id} className="flex items-center justify-between p-3 border rounded-lg">
+                      <div className="flex-1">
+                        <div className="font-medium">{conn.url}</div>
+                        <div className="text-xs text-muted-foreground">
+                          {conn.username && `User: ${conn.username} • `}
+                          Connected {new Date(conn.created_at).toLocaleDateString()}
+                        </div>
+                      </div>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => handleDeleteConnection(conn.id)}
+                        className="text-red-600 hover:text-red-700"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  ))}
+                </div>
+              )
+            )}
 
             <form onSubmit={handleWordPressSubmit} className="space-y-4">
               <div>
