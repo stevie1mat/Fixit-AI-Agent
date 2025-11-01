@@ -21,7 +21,7 @@ export class GrokIntegration {
 
   constructor(config: GrokConfig, userId: string) {
     this.config = {
-      baseUrl: 'https://api.grok.ai',
+      baseUrl: 'https://api.x.ai',
       modelName: 'grok-beta',
       ...config
     }
@@ -41,6 +41,35 @@ export class GrokIntegration {
       // Generate contextual prompt
       const contextualPrompt = this.contextManager.generateContextualPrompt(userMessage)
       
+      // Get conversation history for context-aware responses
+      const contextWindow = (this.contextManager as any).contextWindow
+      const recentMessages = contextWindow?.recentConversations || []
+      
+      // Build messages array with conversation history
+      const messages: any[] = [
+        {
+          role: 'system',
+          content: `You are an e-commerce optimization expert specializing in Shopify and WordPress stores. Use the provided store context and conversation history to give personalized, actionable advice. Always provide specific, implementable solutions. Remember previous messages and maintain conversation context.`
+        }
+      ]
+      
+      // Add recent conversation history (last 6 exchanges = 12 messages max)
+      if (recentMessages.length > 0) {
+        const historyToInclude = recentMessages.slice(-12) // Last 6 conversations
+        historyToInclude.forEach((msg: any) => {
+          messages.push({
+            role: msg.role,
+            content: msg.content
+          })
+        })
+      }
+      
+      // Add current user message
+      messages.push({
+        role: 'user',
+        content: contextualPrompt
+      })
+      
       const response = await fetch(`${this.config.baseUrl}/v1/chat/completions`, {
         method: 'POST',
         headers: {
@@ -49,16 +78,7 @@ export class GrokIntegration {
         },
         body: JSON.stringify({
           model: this.config.modelName,
-          messages: [
-            {
-              role: 'system',
-              content: `You are an e-commerce optimization expert specializing in Shopify and WordPress stores. Use the provided store context to give personalized, actionable advice. Always provide specific, implementable solutions.`
-            },
-            {
-              role: 'user',
-              content: contextualPrompt
-            }
-          ],
+          messages: messages,
           temperature,
           max_tokens: 2000,
           stream: false

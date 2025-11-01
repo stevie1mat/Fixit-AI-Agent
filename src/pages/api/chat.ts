@@ -179,772 +179,458 @@ WordPress Site Connected:
 
     // Generate context-aware AI response
     let aiResponse = ''
-    const grokApiKey = process.env.GROK_API_KEY
+    // Use Google Gemini API (matching ChatTree implementation)
+    const geminiApiKey = process.env.GEMINI_API_KEY || process.env.GOOGLE_AI_API_KEY || process.env.REACT_APP_GEMINI_API_KEY
+    const apiBaseUrl = 'https://generativelanguage.googleapis.com/v1beta'
+    const modelName = 'gemini-2.0-flash-exp' // Matching ChatTree model
     
-    // Use AI to understand user intent and determine action
-    let detectedIntent = 'general'
-    let shouldExecuteAction = false
+    console.log('🔑 API Key Detection:', {
+      hasGEMINI: !!geminiApiKey,
+      keyPrefix: geminiApiKey ? geminiApiKey.substring(0, 10) : 'none',
+      apiBaseUrl,
+      modelName
+    })
     
-    if (grokApiKey && userId && contextManager) {
-      try {
-        // First, use AI to understand intent
-        const intentPrompt = `Analyze this user message and determine their intent. Respond with ONLY a JSON object containing:
-{
-  "intent": "scan_wordpress" | "list_plugins" | "list_posts" | "check_connection" | "optimize" | "help" | "general",
-  "storeType": "wordpress" | "shopify" | null,
-  "action": "scan" | "list_plugins" | "list_posts" | "test_connection" | "get_info" | "help" | null,
-  "needsData": true | false
-}
+    // PURE LLM APPROACH - Let AI understand everything
+    if (!geminiApiKey) {
+      aiResponse = `❌ **Gemini API Key Missing**\n\n`
+      aiResponse += `To use AI features, you need to configure a Google Gemini API key.\n\n`
+      aiResponse += `**How to get a Gemini API key:**\n`
+      aiResponse += `1. Go to https://aistudio.google.com/app/apikey\n`
+      aiResponse += `2. Sign in with your Google account\n`
+      aiResponse += `3. Click "Create API Key"\n`
+      aiResponse += `4. Copy the API key\n`
+      aiResponse += `5. Add to your .env file: \`GEMINI_API_KEY=your_key_here\`\n`
+      aiResponse += `6. Restart your server\n\n`
+      aiResponse += `**Current Status:** No API key configured`
+      res.write(aiResponse)
+      res.end()
+      return
+    }
+    
+    if (!userId || !contextManager) {
+      aiResponse = `❌ Please sign in to use AI features.`
+      res.write(aiResponse)
+      res.end()
+      return
+    }
+    
+    try {
+      // Get conversation history for full context
+      const recentConversations = contextManager['contextWindow']?.recentConversations || []
+      const conversationHistory = recentConversations.slice(-10).map((conv: any) => 
+        `${conv.role}: ${conv.content}`
+      ).join('\n')
+      
+      // Build comprehensive context for Grok to understand what actions are available
+      const availableActions = `
+AVAILABLE ACTIONS (for WordPress):
+1. list_posts - List all WordPress posts with their status (published, draft, etc.)
+2. list_plugins - List all WordPress plugins (active and inactive)
+3. update_post - Update a post's status (e.g., move to draft, publish)
+   - Can identify post by ID (number) or by title (partial match)
+4. scan_wordpress - Perform a full site scan (posts, pages, plugins, theme)
+5. get_info - Get basic information (post count, page count)
 
-User message: "${message}"
-Current store type: ${storeType}
-Has connection: ${!!connection}
+Current context:
+- Store type: ${storeType}
+- Has WordPress connection: ${!!connection}
+- Store URL: ${connection?.url || 'Not connected'}
+${storeInfo ? `- Store info: ${storeInfo.substring(0, 200)}...` : ''}
+`
+      
+      // Let Grok understand the user's intent and decide what to do
+      // Simplified prompt to avoid token limits and format issues
+      const understandingPrompt = `Analyze this user request for WordPress site management.
+
+Available actions: list_posts, list_plugins, update_post, scan_wordpress, get_info
+
+${conversationHistory ? `Recent conversation (last 3 exchanges):\n${conversationHistory.substring(0, 800)}\n\n` : ''}User request: "${message}"
+
+Respond with ONLY this JSON (no markdown, no extra text):
+{"action":"list_posts"|"list_plugins"|"update_post"|"scan_wordpress"|"get_info"|null,"reasoning":"brief explanation","needsExecution":true|false,"postId":number|null,"postTitle":string|null,"confidence":"high"|"medium"|"low"}
 
 Examples:
-- "scan my wordpress site" → {"intent": "scan_wordpress", "storeType": "wordpress", "action": "scan", "needsData": true}
-- "check plugins" → {"intent": "list_plugins", "storeType": "wordpress", "action": "list_plugins", "needsData": true}
-- "list all posts" → {"intent": "list_posts", "storeType": "wordpress", "action": "list_posts", "needsData": true}
-- "how many posts" → {"intent": "get_info", "storeType": "wordpress", "action": "get_info", "needsData": true}
-- "help with wordpress" → {"intent": "help", "storeType": "wordpress", "action": "help", "needsData": false}
+- "check posts" → {"action":"list_posts","reasoning":"User wants to see posts","needsExecution":true,"postId":null,"postTitle":null,"confidence":"high"}
+- "list plugins" → {"action":"list_plugins","reasoning":"User wants plugin list","needsExecution":true,"postId":null,"postTitle":null,"confidence":"high"}`
 
-Respond with ONLY the JSON object, no other text:`
-
-        const intentResponse = await fetch('https://api.x.ai/v1/chat/completions', {
-          method: 'POST',
-          headers: {
-            'Authorization': `Bearer ${grokApiKey}`,
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            model: 'grok-beta',
-            messages: [
-              {
-                role: 'system',
-                content: 'You are an intent classifier. Always respond with valid JSON only, no other text.'
-              },
-              {
-                role: 'user',
-                content: intentPrompt
-              }
-            ],
-            temperature: 0.3,
-            max_tokens: 200
-          })
-        })
-
-        if (intentResponse.ok) {
-          const intentData = await intentResponse.json()
-          const intentText = intentData.choices[0]?.message?.content || '{}'
-          
-          try {
-            // Clean up the response to extract JSON
-            const jsonMatch = intentText.match(/\{[\s\S]*\}/)
-            if (jsonMatch) {
-              const intentResult = JSON.parse(jsonMatch[0])
-              detectedIntent = intentResult.intent || 'general'
-              shouldExecuteAction = intentResult.needsData === true
-              
-              console.log('Detected intent:', detectedIntent, 'Action:', intentResult.action)
-            }
-          } catch (parseError) {
-            console.error('Error parsing intent JSON:', parseError)
-          }
-        }
-      } catch (error) {
-        console.error('Error detecting intent with AI:', error)
-        // Fall back to keyword matching
-      }
-    } else {
-      // Fallback keyword-based intent detection if AI not available
-      const lowerMessage = message.toLowerCase()
-      if (lowerMessage.includes('plugin') || lowerMessage.includes('plugins')) {
-        detectedIntent = 'list_plugins'
-        shouldExecuteAction = true
-      } else if (lowerMessage.includes('scan') && (lowerMessage.includes('wordpress') || lowerMessage.includes('site'))) {
-        detectedIntent = 'scan_wordpress'
-        shouldExecuteAction = true
-      } else if ((lowerMessage.includes('list') && lowerMessage.includes('post')) || (lowerMessage.includes('all') && lowerMessage.includes('post'))) {
-        detectedIntent = 'list_posts'
-        shouldExecuteAction = true
-      } else if (lowerMessage.includes('post') || lowerMessage.includes('page')) {
-        detectedIntent = 'get_info'
-        shouldExecuteAction = true
-      }
-    }
-    
-    // Try to use Grok AI for response generation if API key is available
-    if (grokApiKey && userId && contextManager && !shouldExecuteAction) {
-      try {
-        const grokIntegration = new GrokIntegration(
-          { apiKey: grokApiKey },
-          userId
-        )
-        
-        // Build context for Grok
-        const grokContext = storeInfo ? { storeInfo, storeType, hasConnection: !!connection } : null
-        
-        const grokResponse = await grokIntegration.sendToGrok(
-          message,
-          grokContext,
-          0.7
-        )
-        
-        aiResponse = grokResponse.content
-        console.log('Grok AI response generated successfully')
-      } catch (error) {
-        console.error('Error calling Grok API, falling back to template:', error)
-        // Fall through to template responses
-      }
-    }
-    
-    // Execute actions based on detected intent
-    if (shouldExecuteAction && connection && storeType === 'wordpress') {
-      const username = connection.username || (connection as any).username
-      const appPassword = connection.app_password || connection.appPassword || (connection as any).appPassword
-      const storeUrl = connection.url
+      console.log('🔍 AI UNDERSTANDING - Sending request to Gemini...')
+      console.log('📝 User message:', message)
+      console.log('💭 Conversation history length:', conversationHistory.length)
+      console.log('🔑 Using API: Gemini | Model:', modelName)
       
-      if (username && appPassword && storeUrl) {
-        try {
-          const wordpress = new WordPressAPI(storeUrl, username, appPassword)
-          
-          if (detectedIntent === 'list_plugins' || detectedIntent === 'check_plugins' || message.toLowerCase().includes('plugin')) {
-            // Fetch and list plugins
-            const isConnected = await wordpress.testConnection()
-            if (!isConnected) {
-              aiResponse = `❌ Cannot fetch plugins - connection test failed. Please check your WordPress credentials.`
-            } else {
-              const plugins = await wordpress.getPlugins().catch(() => [])
-              const activePlugins = Array.isArray(plugins) ? plugins.filter((p: any) => p.status === 'active') : []
-              const inactivePlugins = Array.isArray(plugins) ? plugins.filter((p: any) => p.status === 'inactive') : []
-              
-              if (Array.isArray(plugins) && plugins.length > 0) {
-                aiResponse = `**Plugin Summary:**\n`
-                aiResponse += `- **Total Plugins:** ${plugins.length}\n`
-                aiResponse += `- **Active Plugins:** ${activePlugins.length}\n`
-                aiResponse += `- **Inactive Plugins:** ${inactivePlugins.length}\n\n`
-                
-                if (activePlugins.length > 0) {
-                  aiResponse += `**Active Plugins (${activePlugins.length}):**\n`
-                  activePlugins.forEach((p: any, index: number) => {
-                    const name = p.name || p.plugin || 'Unknown Plugin'
-                    const version = p.version ? ` (v${p.version})` : ''
-                    aiResponse += `${index + 1}. **${name}**${version}\n`
-                  })
-                  aiResponse += `\n`
-                }
-                
-                if (inactivePlugins.length > 0) {
-                  aiResponse += `**Inactive Plugins (${inactivePlugins.length}):**\n`
-                  inactivePlugins.slice(0, 20).forEach((p: any, index: number) => {
-                    const name = p.name || p.plugin || 'Unknown Plugin'
-                    const version = p.version ? ` (v${p.version})` : ''
-                    aiResponse += `${index + 1}. ${name}${version}\n`
-                  })
-                  if (inactivePlugins.length > 20) {
-                    aiResponse += `... and ${inactivePlugins.length - 20} more\n`
-                  }
-                }
-              } else {
-                aiResponse = `No plugins found on your WordPress site.`
-              }
-            }
-          } else if (detectedIntent === 'list_posts' || (message.toLowerCase().includes('list') && message.toLowerCase().includes('post'))) {
-            // Fetch and list all posts with their states
-            const isConnected = await wordpress.testConnection()
-            if (!isConnected) {
-              aiResponse = `❌ Cannot fetch posts - connection test failed. Please check your WordPress credentials.`
-            } else {
-              try {
-                const allPosts = await wordpress.getAllPosts()
-                
-                if (Array.isArray(allPosts) && allPosts.length > 0) {
-                  // Group posts by status
-                  const postsByStatus: Record<string, any[]> = {}
-                  allPosts.forEach((post: any) => {
-                    const status = post.status || 'unknown'
-                    if (!postsByStatus[status]) {
-                      postsByStatus[status] = []
-                    }
-                    postsByStatus[status].push(post)
-                  })
-                  
-                  aiResponse = `**All Posts (${allPosts.length} total):**\n\n`
-                  
-                  // Display posts grouped by status
-                  const statusOrder = ['publish', 'draft', 'pending', 'private', 'future', 'trash']
-                  statusOrder.forEach(status => {
-                    if (postsByStatus[status] && postsByStatus[status].length > 0) {
-                      const statusLabel = status.charAt(0).toUpperCase() + status.slice(1)
-                      aiResponse += `**${statusLabel} (${postsByStatus[status].length}):**\n`
-                      postsByStatus[status].forEach((post: any, index: number) => {
-                        const title = post.title?.rendered || post.title || 'Untitled'
-                        const date = post.date ? new Date(post.date).toLocaleDateString() : 'No date'
-                        const id = post.id || 'N/A'
-                        aiResponse += `${index + 1}. [ID: ${id}] **${title}** - ${date}\n`
-                      })
-                      aiResponse += `\n`
-                    }
-                  })
-                  
-                  // Show any posts with other statuses
-                  Object.keys(postsByStatus).forEach(status => {
-                    if (!statusOrder.includes(status)) {
-                      aiResponse += `**${status} (${postsByStatus[status].length}):**\n`
-                      postsByStatus[status].forEach((post: any, index: number) => {
-                        const title = post.title?.rendered || post.title || 'Untitled'
-                        const date = post.date ? new Date(post.date).toLocaleDateString() : 'No date'
-                        const id = post.id || 'N/A'
-                        aiResponse += `${index + 1}. [ID: ${id}] **${title}** - ${date}\n`
-                      })
-                      aiResponse += `\n`
-                    }
-                  })
-                } else {
-                  aiResponse = `No posts found on your WordPress site.`
-                }
-              } catch (fetchError) {
-                console.error('Error fetching all posts:', fetchError)
-                aiResponse = `❌ Error fetching posts: ${fetchError instanceof Error ? fetchError.message : 'Unknown error'}`
-              }
-            }
-          } else if (detectedIntent === 'scan_wordpress' || detectedIntent === 'scan') {
-            // Perform WordPress scan
-            const isConnected = await wordpress.testConnection()
-            if (!isConnected) {
-              aiResponse = `❌ Cannot scan - connection test failed. Please check your WordPress credentials.`
-            } else {
-              const [posts, pages, plugins, theme, postsCount, pagesCount] = await Promise.all([
-                wordpress.getPosts(5).catch(() => []),
-                wordpress.getPages(5).catch(() => []),
-                wordpress.getPlugins().catch(() => []),
-                wordpress.getTheme().catch(() => null),
-                wordpress.getPostsCount().catch(() => 0),
-                wordpress.getPagesCount().catch(() => 0)
-              ])
-              
-              aiResponse = `✅ **WordPress Site Scan Complete!**\n\n`
-              aiResponse += `**Site Overview:**\n`
-              aiResponse += `- Site URL: ${storeUrl}\n`
-              aiResponse += `- Total Posts: **${postsCount}**\n`
-              aiResponse += `- Total Pages: **${pagesCount}**\n`
-              
-              if (theme) {
-                aiResponse += `- Active Theme: **${theme.name || 'Unknown'}**\n`
-                if (theme.version) aiResponse += `- Theme Version: ${theme.version}\n`
-              }
-              
-              const activePlugins = Array.isArray(plugins) ? plugins.filter((p: any) => p.status === 'active') : []
-              if (Array.isArray(plugins)) {
-                aiResponse += `- Total Plugins: **${plugins.length}** (${activePlugins.length} active)\n`
-              }
-              
-              aiResponse += `\n✅ **Connection verified and site scanned successfully!**`
-            }
-          } else if (detectedIntent === 'get_info' && (message.toLowerCase().includes('post') || message.toLowerCase().includes('page'))) {
-            // Get posts/pages info
-            const isConnected = await wordpress.testConnection()
-            if (!isConnected) {
-              aiResponse = `❌ Cannot fetch info - connection test failed.`
-            } else {
-              const [postsCount, pagesCount] = await Promise.all([
-                wordpress.getPostsCount().catch(() => 0),
-                wordpress.getPagesCount().catch(() => 0)
-              ])
-              
-              aiResponse = `**WordPress Site Information:**\n\n`
-              aiResponse += `- 📝 Total Posts: **${postsCount}**\n`
-              aiResponse += `- 📄 Total Pages: **${pagesCount}**\n`
-            }
-          }
-        } catch (actionError) {
-          console.error('Error executing action:', actionError)
-          aiResponse = `I encountered an error: ${actionError instanceof Error ? actionError.message : 'Unknown error'}. Please check your WordPress connection.`
+      // Gemini API format - convert to messages array format (matching ChatTree)
+      const geminiMessages = [
+        {
+          role: 'user',
+          parts: [{ text: `You are an intelligent assistant. Always respond with valid JSON only.\n\n${understandingPrompt}` }]
         }
-      }
-    }
-    
-    // Fallback to template responses if Grok wasn't used and no action was executed
-    if (!aiResponse) {
-      if (contextManager) {
-        // Generate context-aware prompt
-        const contextualPrompt = contextManager.generateContextualPrompt(message)
-        console.log('Contextual prompt generated:', contextualPrompt.substring(0, 200) + '...')
-        
-        // Handle general questions
-        const lowerMessage = message.toLowerCase()
-        const isWordPress = storeType === 'wordpress' || lowerMessage.includes('wordpress')
-        const isShopify = storeType === 'shopify' || lowerMessage.includes('shopify')
-        
-        if (lowerMessage.includes('who are you') || lowerMessage.includes('what are you') || lowerMessage.includes('introduce yourself')) {
-          aiResponse = `Hi! I'm Fix It AI, your intelligent e-commerce optimization assistant. I specialize in helping you improve and optimize your Shopify and WordPress stores.
-
-${storeInfo ? `I can see your store is connected: ${storeInfo.substring(0, 100)}...` : 'I can help you connect your store and then assist with various optimizations.'}
-
-I can help you with:
-- **Product Management**: Optimize descriptions, images, pricing, and inventory
-- **Theme Customization**: Improve your store's design and user experience
-- **SEO Optimization**: Boost your search engine rankings
-- **Performance Tuning**: Speed up your store
-- **Shipping & Discounts**: Configure shipping rules and create promotions
-
-What would you like to work on today?`
-        } else if (lowerMessage.includes('scan') && (lowerMessage.includes('wordpress') || lowerMessage.includes('site') || isWordPress)) {
-          // Perform WordPress scan - start with connection confirmation
-          if (connection && storeType === 'wordpress') {
-            try {
-              const username = connection.username || (connection as any).username
-              const appPassword = connection.app_password || connection.appPassword || (connection as any).appPassword
-              const storeUrl = connection.url
-              
-              if (username && appPassword && storeUrl) {
-                const wordpress = new WordPressAPI(storeUrl, username, appPassword)
-                
-                aiResponse = `🔍 **Testing WordPress connection...**\n\n`
-                
-                // Step 1: Test connection and get post count
-                try {
-                  const isConnected = await wordpress.testConnection()
-                  
-                  if (!isConnected) {
-                    aiResponse += `❌ **Connection Failed**\n\n`
-                    aiResponse += `I wasn't able to connect to your WordPress site. Please check:\n`
-                    aiResponse += `- Your WordPress site URL is correct\n`
-                    aiResponse += `- Your username and application password are valid\n`
-                    aiResponse += `- Your WordPress site has REST API enabled\n`
-                    aiResponse += `- There are no security plugins blocking API access\n\n`
-                    aiResponse += `You can try updating your WordPress credentials in Settings.`
-                  } else {
-                    // Connection successful - get actual post and page counts
-                    const [posts, postsCount, pagesCount] = await Promise.all([
-                      wordpress.getPosts(5).catch(() => []), // Get 5 posts for display
-                      wordpress.getPostsCount().catch(() => 0), // Get total posts count
-                      wordpress.getPagesCount().catch(() => 0) // Get total pages count
-                    ])
-                    
-                    aiResponse += `✅ **Connection Successful!**\n\n`
-                    aiResponse += `I've successfully connected to your WordPress site at: **${storeUrl}**\n\n`
-                    aiResponse += `**Quick Overview:**\n`
-                    aiResponse += `- 📝 Total Posts: **${postsCount}**\n`
-                    aiResponse += `- 📄 Total Pages: **${pagesCount}**\n\n`
-                    
-                    // Show a few recent posts as confirmation
-                    if (posts.length > 0) {
-                      aiResponse += `**Recent Posts:**\n`
-                      posts.slice(0, 5).forEach((post: any) => {
-                        const title = post.title?.rendered || post.title || 'Untitled'
-                        aiResponse += `- ${title}\n`
-                      })
-                      aiResponse += `\n`
-                    }
-                    
-                    aiResponse += `Would you like me to perform a full site scan? This will analyze:\n`
-                    aiResponse += `- All plugins (active and inactive)\n`
-                    aiResponse += `- Active theme details\n`
-                    aiResponse += `- All pages and posts\n`
-                    aiResponse += `- Site configuration\n\n`
-                    aiResponse += `Just say "scan everything" or "full scan" to proceed!`
-                    
-                    // Update store info with basic connection confirmation
-                    storeInfo = `WordPress site connected successfully. Found ${postsCount} posts and ${pagesCount} pages.`
-                  }
-                } catch (testError) {
-                  console.error('Error testing WordPress connection:', testError)
-                  aiResponse += `❌ **Connection Error**\n\n`
-                  aiResponse += `I encountered an error while testing the connection:\n\n`
-                  aiResponse += `**Error:** ${testError instanceof Error ? testError.message : 'Unknown error'}\n\n`
-                  aiResponse += `Please verify:\n`
-                  aiResponse += `- Your WordPress site URL: ${storeUrl}\n`
-                  aiResponse += `- Your username and application password are correct\n`
-                  aiResponse += `- The WordPress REST API is enabled on your site\n`
-                  aiResponse += `- No security plugins are blocking API access\n\n`
-                  aiResponse += `You can update your WordPress credentials in Settings.`
-                }
-              } else {
-                aiResponse = `I need your WordPress credentials to connect. Please ensure your WordPress site is properly connected in Settings with:\n\n`
-                aiResponse += `- WordPress site URL\n`
-                aiResponse += `- WordPress username\n`
-                aiResponse += `- Application Password (created in WordPress → Users → Profile → Application Passwords)\n\n`
-                aiResponse += `Once connected, I can test the connection and show you your site details.`
-              }
-            } catch (scanError) {
-              console.error('Error performing WordPress scan:', scanError)
-              aiResponse = `I encountered an error:\n\n`
-              aiResponse += `**Error:** ${scanError instanceof Error ? scanError.message : 'Unknown error'}\n\n`
-              aiResponse += `Please check your WordPress connection settings in the app.`
-            }
-          } else {
-            aiResponse = `To scan your WordPress site, I need you to connect it first. Please go to Settings and add your WordPress site with your site URL, username, and application password.\n\n`
-            aiResponse += `Once connected, I can test the connection and show you your site details.`
+      ]
+      
+      const understandingResponse = await fetch(`${apiBaseUrl}/models/${modelName}:generateContent?key=${geminiApiKey}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          contents: geminiMessages,
+          generationConfig: {
+            temperature: 0.3,
+            maxOutputTokens: 300,
+            topP: 0.95,
+            topK: 40
           }
-        } else if (lowerMessage.includes('full scan') || lowerMessage.includes('scan everything') || (lowerMessage.includes('scan') && lowerMessage.includes('all'))) {
-          // Perform full comprehensive scan after connection confirmed
-          if (connection && storeType === 'wordpress') {
-            try {
-              const username = connection.username || (connection as any).username
-              const appPassword = connection.app_password || connection.appPassword || (connection as any).appPassword
-              const storeUrl = connection.url
-              
-              if (username && appPassword && storeUrl) {
-                const wordpress = new WordPressAPI(storeUrl, username, appPassword)
-                
-                // Test connection first
-                const isConnected = await wordpress.testConnection()
-                if (!isConnected) {
-                  aiResponse = `❌ Cannot perform full scan - connection test failed. Please check your WordPress credentials.`
-                } else {
-                  aiResponse = `🔍 **Performing comprehensive WordPress scan...**\n\n`
+        })
+      })
+      
+      if (!understandingResponse.ok) {
+        let errorText = ''
+        try {
+          errorText = await understandingResponse.text()
+          const errorJson = JSON.parse(errorText)
+          console.error('❌ GEMINI UNDERSTANDING FAILED - API Error:', understandingResponse.status)
+          console.error('❌ Error Details:', JSON.stringify(errorJson, null, 2))
+          console.error('❌ Request was:', JSON.stringify({
+            model: modelName,
+            api: 'Gemini',
+            messageCount: understandingPrompt.split('\n').length,
+            promptLength: understandingPrompt.length
+          }, null, 2))
+          
+          // Handle specific error cases
+          const errorMessage = errorJson.error?.message || errorJson.message || errorText
+          
+          if (errorMessage.includes('API key') || errorMessage.includes('invalid argument') || errorMessage.includes('Incorrect API key') || errorMessage.includes('API_KEY_INVALID')) {
+            aiResponse = `❌ **Invalid Gemini API Key**\n\n`
+            aiResponse += `The Gemini API key you're using is invalid or expired.\n\n`
+            aiResponse += `**Error:** ${errorMessage}\n\n`
+            aiResponse += `**How to fix:**\n`
+            aiResponse += `1. Go to https://aistudio.google.com/app/apikey\n`
+            aiResponse += `2. Sign in with your Google account\n`
+            aiResponse += `3. Create a new API key or check existing ones\n`
+            aiResponse += `4. Update the \`GEMINI_API_KEY\` environment variable in your .env file\n`
+            aiResponse += `5. Restart your server\n\n`
+            aiResponse += `Your current API key starts with: ${geminiApiKey ? geminiApiKey.substring(0, 10) : 'none'}...`
+          } else {
+            aiResponse = `❌ Failed to understand your request.\n\n`
+            aiResponse += `**Error:** ${errorMessage}\n\n`
+            aiResponse += `**Status:** ${understandingResponse.status}\n\n`
+            aiResponse += `Please check the console logs for detailed error information.`
+          }
+        } catch (parseError) {
+          console.error('❌ GROK UNDERSTANDING FAILED - Could not parse error:', errorText.substring(0, 500))
+          aiResponse = `❌ Failed to understand your request. API error: ${understandingResponse.status}\n\nError: ${errorText.substring(0, 200)}`
+        }
+        res.write(aiResponse)
+        res.end()
+        return
+      }
+      
+      const understandingData = await understandingResponse.json()
+      // Gemini API response format is different
+      const understandingText = understandingData.candidates?.[0]?.content?.parts?.[0]?.text || 
+                               understandingData.text || 
+                               '{}'
+      
+      console.log('🧠 GEMINI RAW RESPONSE:', understandingText)
+      
+      // Extract JSON from response
+      let grokUnderstanding: any = null
+      try {
+        const jsonMatch = understandingText.match(/\{[\s\S]*\}/)
+        if (jsonMatch) {
+          grokUnderstanding = JSON.parse(jsonMatch[0])
+          console.log('✅ GEMINI UNDERSTANDING PARSED:', JSON.stringify(grokUnderstanding, null, 2))
+          console.log('💡 GEMINI REASONING:', grokUnderstanding.reasoning || 'No reasoning provided')
+          console.log('🎯 GEMINI CONFIDENCE:', grokUnderstanding.confidence || 'unknown')
+          } else {
+            console.error('❌ GEMINI UNDERSTANDING FAILED - No JSON found in response')
+            console.error('Raw response:', understandingText)
+            aiResponse = `❌ Failed to understand your request. Gemini response: ${understandingText.substring(0, 200)}`
+            res.write(aiResponse)
+            res.end()
+            return
+          }
+        } catch (parseError) {
+          console.error('❌ GEMINI UNDERSTANDING FAILED - JSON Parse Error:', parseError)
+          console.error('Raw response:', understandingText)
+          aiResponse = `❌ Failed to parse Gemini's understanding. Error: ${parseError instanceof Error ? parseError.message : 'Unknown'}`
+          res.write(aiResponse)
+          res.end()
+          return
+        }
+      
+      // Execute action if Gemini determined one is needed
+      let actionResult = ''
+      if (grokUnderstanding.needsExecution && grokUnderstanding.action && connection && storeType === 'wordpress') {
+        console.log('⚡ EXECUTING ACTION:', grokUnderstanding.action)
+        
+        const username = connection.username || (connection as any).username
+        const appPassword = connection.app_password || connection.appPassword || (connection as any).appPassword
+        const storeUrl = connection.url
+        
+        if (username && appPassword && storeUrl) {
+          try {
+            const wordpress = new WordPressAPI(storeUrl, username, appPassword)
+            
+            if (grokUnderstanding.action === 'list_posts') {
+              console.log('📋 Action: Listing posts')
+              const isConnected = await wordpress.testConnection()
+              if (!isConnected) {
+                actionResult = `❌ Cannot fetch posts - connection test failed. Please check your WordPress credentials.`
+              } else {
+                try {
+                  const allPosts = await wordpress.getAllPosts()
                   
-                  // Perform comprehensive scan
-                  const [posts, pages, plugins, theme, options] = await Promise.all([
-                    wordpress.getPosts(20).catch(() => []),
-                    wordpress.getPages(20).catch(() => []),
-                    wordpress.getPlugins().catch(() => []),
-                    wordpress.getTheme().catch(() => null),
-                    wordpress.getOptions().catch(() => {})
-                  ])
-                  
-                  const activeTheme = theme ? theme.name : 'Unknown'
-                  const activePlugins = Array.isArray(plugins) ? plugins.filter((p: any) => p.status === 'active') : []
-                  const inactivePlugins = Array.isArray(plugins) ? plugins.filter((p: any) => p.status === 'inactive') : []
-                  
-                  aiResponse += `✅ **Full Scan Complete!** Here's what I found:\n\n`
-                  aiResponse += `**Site Overview:**\n`
-                  aiResponse += `- Active Theme: **${activeTheme}**\n`
-                  if (theme && theme.version) {
-                    aiResponse += `- Theme Version: ${theme.version}\n`
+                  if (Array.isArray(allPosts) && allPosts.length > 0) {
+                    const postsByStatus: Record<string, any[]> = {}
+                    allPosts.forEach((post: any) => {
+                      const status = post.status || 'unknown'
+                      if (!postsByStatus[status]) {
+                        postsByStatus[status] = []
+                      }
+                      postsByStatus[status].push(post)
+                    })
+                    
+                    actionResult = `**All Posts (${allPosts.length} total):**\n\n`
+                    
+                    const statusOrder = ['publish', 'draft', 'pending', 'private', 'future', 'trash']
+                    statusOrder.forEach(status => {
+                      if (postsByStatus[status] && postsByStatus[status].length > 0) {
+                        const statusLabel = status.charAt(0).toUpperCase() + status.slice(1)
+                        actionResult += `**${statusLabel} (${postsByStatus[status].length}):**\n`
+                        postsByStatus[status].forEach((post: any, index: number) => {
+                          const title = post.title?.rendered || post.title || 'Untitled'
+                          const date = post.date ? new Date(post.date).toLocaleDateString() : 'No date'
+                          const id = post.id || 'N/A'
+                          actionResult += `${index + 1}. [ID: ${id}] **${title}** - ${date}\n`
+                        })
+                        actionResult += `\n`
+                      }
+                    })
+                    
+                    Object.keys(postsByStatus).forEach(status => {
+                      if (!statusOrder.includes(status)) {
+                        actionResult += `**${status} (${postsByStatus[status].length}):**\n`
+                        postsByStatus[status].forEach((post: any, index: number) => {
+                          const title = post.title?.rendered || post.title || 'Untitled'
+                          const date = post.date ? new Date(post.date).toLocaleDateString() : 'No date'
+                          const id = post.id || 'N/A'
+                          actionResult += `${index + 1}. [ID: ${id}] **${title}** - ${date}\n`
+                        })
+                        actionResult += `\n`
+                      }
+                    })
+                  } else {
+                    actionResult = `No posts found on your WordPress site.`
                   }
-                  aiResponse += `- Posts: ${Array.isArray(posts) ? posts.length : 0} found\n`
-                  aiResponse += `- Pages: ${Array.isArray(pages) ? pages.length : 0} found\n`
-                  aiResponse += `- Total Plugins: ${Array.isArray(plugins) ? plugins.length : 0} (${activePlugins.length} active, ${inactivePlugins.length} inactive)\n\n`
+                } catch (fetchError) {
+                  console.error('Error fetching posts:', fetchError)
+                  actionResult = `❌ Error fetching posts: ${fetchError instanceof Error ? fetchError.message : 'Unknown error'}`
+                }
+              }
+            } else if (grokUnderstanding.action === 'list_plugins') {
+              console.log('🔌 Action: Listing plugins')
+              const isConnected = await wordpress.testConnection()
+              if (!isConnected) {
+                actionResult = `❌ Cannot fetch plugins - connection test failed.`
+              } else {
+                const plugins = await wordpress.getPlugins().catch(() => [])
+                const activePlugins = Array.isArray(plugins) ? plugins.filter((p: any) => p.status === 'active') : []
+                const inactivePlugins = Array.isArray(plugins) ? plugins.filter((p: any) => p.status === 'inactive') : []
+                
+                if (Array.isArray(plugins) && plugins.length > 0) {
+                  actionResult = `**Plugin Summary:**\n- **Total Plugins:** ${plugins.length}\n- **Active Plugins:** ${activePlugins.length}\n- **Inactive Plugins:** ${inactivePlugins.length}\n\n`
                   
                   if (activePlugins.length > 0) {
-                    aiResponse += `**Active Plugins:**\n`
-                    activePlugins.slice(0, 10).forEach((p: any) => {
-                      aiResponse += `- ${p.name || p.plugin}${p.version ? ` (v${p.version})` : ''}\n`
+                    actionResult += `**Active Plugins (${activePlugins.length}):**\n`
+                    activePlugins.forEach((p: any, index: number) => {
+                      const name = p.name || p.plugin || 'Unknown Plugin'
+                      const version = p.version ? ` (v${p.version})` : ''
+                      actionResult += `${index + 1}. **${name}**${version}\n`
                     })
-                    if (activePlugins.length > 10) {
-                      aiResponse += `- ... and ${activePlugins.length - 10} more\n`
-                    }
-                    aiResponse += `\n`
                   }
-                  
-                  if (theme) {
-                    aiResponse += `**Theme Details:**\n`
-                    aiResponse += `- Name: ${theme.name || 'Unknown'}\n`
-                    if (theme.version) aiResponse += `- Version: ${theme.version}\n`
-                    if (theme.description) aiResponse += `- Description: ${theme.description.substring(0, 100)}...\n`
-                    aiResponse += `\n`
-                  }
-                  
-                  aiResponse += `**Recommended Next Steps:**\n`
-                  aiResponse += `1. Review plugin performance - consider deactivating unused plugins\n`
-                  aiResponse += `2. Check theme updates and compatibility\n`
-                  aiResponse += `3. Optimize database - clean up revisions and spam\n`
-                  aiResponse += `4. Review SEO settings and meta tags\n`
-                  aiResponse += `5. Check site performance and caching\n\n`
-                  aiResponse += `What would you like to optimize first?`
-                  
-                  // Update store info with scan results
-                  storeInfo = aiResponse
-                }
-              } else {
-                aiResponse = `I need your WordPress credentials to perform a full scan. Please ensure your WordPress site is properly connected in Settings.`
-              }
-            } catch (scanError) {
-              console.error('Error performing full WordPress scan:', scanError)
-              aiResponse = `I encountered an error while performing the full scan:\n\n`
-              aiResponse += `**Error:** ${scanError instanceof Error ? scanError.message : 'Unknown error'}\n\n`
-              aiResponse += `Please check your WordPress connection settings.`
-            }
-          } else {
-            aiResponse = `Please connect your WordPress site first in Settings before performing a full scan.`
-          }
-        } else if (isWordPress && (lowerMessage.includes('plugin') || lowerMessage.includes('plugins'))) {
-          // Handle plugin queries - fetch and list plugins
-          if (connection && storeType === 'wordpress') {
-            try {
-              const username = connection.username || (connection as any).username
-              const appPassword = connection.app_password || connection.appPassword || (connection as any).appPassword
-              const storeUrl = connection.url
-              
-              if (username && appPassword && storeUrl) {
-                const wordpress = new WordPressAPI(storeUrl, username, appPassword)
-                
-                // Test connection first
-                const isConnected = await wordpress.testConnection()
-                if (!isConnected) {
-                  aiResponse = `❌ Cannot fetch plugins - connection test failed. Please check your WordPress credentials.`
                 } else {
-                  aiResponse = `🔍 **Fetching your WordPress plugins...**\n\n`
-                  
-                  // Get plugins
-                  const plugins = await wordpress.getPlugins().catch(() => [])
-                  const activePlugins = Array.isArray(plugins) ? plugins.filter((p: any) => p.status === 'active') : []
-                  const inactivePlugins = Array.isArray(plugins) ? plugins.filter((p: any) => p.status === 'inactive') : []
-                  
-                  if (!Array.isArray(plugins) || plugins.length === 0) {
-                    aiResponse += `No plugins found or unable to fetch plugin information.`
-                  } else {
-                    aiResponse += `**Plugin Summary:**\n`
-                    aiResponse += `- **Total Plugins:** ${plugins.length}\n`
-                    aiResponse += `- **Active Plugins:** ${activePlugins.length}\n`
-                    aiResponse += `- **Inactive Plugins:** ${inactivePlugins.length}\n\n`
-                    
-                    if (activePlugins.length > 0) {
-                      aiResponse += `**Active Plugins (${activePlugins.length}):**\n`
-                      activePlugins.forEach((p: any, index: number) => {
-                        const name = p.name || p.plugin || 'Unknown Plugin'
-                        const version = p.version ? ` (v${p.version})` : ''
-                        const author = p.author ? ` by ${p.author}` : ''
-                        aiResponse += `${index + 1}. **${name}**${version}${author}\n`
-                      })
-                      aiResponse += `\n`
-                    }
-                    
-                    if (inactivePlugins.length > 0 && inactivePlugins.length <= 20) {
-                      aiResponse += `**Inactive Plugins (${inactivePlugins.length}):**\n`
-                      inactivePlugins.forEach((p: any, index: number) => {
-                        const name = p.name || p.plugin || 'Unknown Plugin'
-                        const version = p.version ? ` (v${p.version})` : ''
-                        aiResponse += `${index + 1}. ${name}${version}\n`
-                      })
-                      aiResponse += `\n`
-                    } else if (inactivePlugins.length > 20) {
-                      aiResponse += `**Inactive Plugins (${inactivePlugins.length} - showing first 20):**\n`
-                      inactivePlugins.slice(0, 20).forEach((p: any, index: number) => {
-                        const name = p.name || p.plugin || 'Unknown Plugin'
-                        const version = p.version ? ` (v${p.version})` : ''
-                        aiResponse += `${index + 1}. ${name}${version}\n`
-                      })
-                      aiResponse += `... and ${inactivePlugins.length - 20} more inactive plugins\n\n`
-                    }
-                    
-                    aiResponse += `**Recommendations:**\n`
-                    if (activePlugins.length > 20) {
-                      aiResponse += `- ⚠️ You have ${activePlugins.length} active plugins. Consider reviewing if all are necessary, as too many plugins can slow down your site.\n`
-                    }
-                    if (inactivePlugins.length > 10) {
-                      aiResponse += `- 🗑️ You have ${inactivePlugins.length} inactive plugins. Consider deleting unused plugins to improve security and reduce clutter.\n`
-                    }
-                    if (activePlugins.length <= 20 && inactivePlugins.length <= 10) {
-                      aiResponse += `- ✅ Your plugin setup looks good! I can help optimize their performance if needed.\n`
-                    }
-                    aiResponse += `\nWould you like me to analyze any specific plugins or suggest performance improvements?`
-                  }
+                  actionResult = `No plugins found on your WordPress site.`
                 }
-              } else {
-                aiResponse = `I need your WordPress credentials to fetch plugin information. Please ensure your WordPress site is properly connected in Settings with your username and application password.`
               }
-            } catch (error) {
-              console.error('Error fetching plugins:', error)
-              aiResponse = `I encountered an error while fetching your plugins:\n\n`
-              aiResponse += `**Error:** ${error instanceof Error ? error.message : 'Unknown error'}\n\n`
-              aiResponse += `Please check your WordPress connection settings.`
+            } else if (grokUnderstanding.action === 'update_post') {
+              console.log('✏️ Action: Updating post', { postId: grokUnderstanding.postId, postTitle: grokUnderstanding.postTitle })
+              const isConnected = await wordpress.testConnection()
+              if (!isConnected) {
+                actionResult = `❌ Cannot update post - connection test failed.`
+              } else {
+                try {
+                  let targetPostId: number | null = null
+                  let targetPost: any = null
+                  
+                  if (grokUnderstanding.postId) {
+                    try {
+                      targetPost = await wordpress.getPost(grokUnderstanding.postId)
+                      targetPostId = grokUnderstanding.postId
+                    } catch (err) {
+                      console.error('Error fetching post by ID:', err)
+                    }
+                  } else if (grokUnderstanding.postTitle) {
+                    const allPosts = await wordpress.getAllPosts()
+                    const lowerTitle = grokUnderstanding.postTitle.toLowerCase()
+                    targetPost = allPosts.find((p: any) => {
+                      const postTitle = (p.title?.rendered || p.title || '').toLowerCase()
+                      return postTitle.includes(lowerTitle) || lowerTitle.includes(postTitle)
+                    })
+                    if (targetPost) targetPostId = targetPost.id
+                  }
+                  
+                  if (!targetPostId || !targetPost) {
+                    actionResult = `❌ Couldn't identify which post to update. ${grokUnderstanding.postId ? `Post ID ${grokUnderstanding.postId} not found.` : ''} ${grokUnderstanding.postTitle ? `Post title "${grokUnderstanding.postTitle}" not found.` : ''}`
+                  } else {
+                    if (targetPost.status === 'draft') {
+                      actionResult = `ℹ️ Post "${targetPost.title?.rendered || targetPost.title || 'Untitled'}" (ID: ${targetPostId}) is already in draft status.`
+                    } else {
+                      const updatedPost = await wordpress.updatePost(targetPostId, { status: 'draft' })
+                      actionResult = `✅ Successfully moved post to draft!\n\n**Post Details:**\n- **Title:** ${updatedPost.title?.rendered || updatedPost.title || 'Untitled'}\n- **ID:** ${updatedPost.id}\n- **Previous Status:** ${targetPost.status}\n- **New Status:** ${updatedPost.status}`
+                    }
+                  }
+                } catch (updateError) {
+                  console.error('Error updating post:', updateError)
+                  actionResult = `❌ Error updating post: ${updateError instanceof Error ? updateError.message : 'Unknown error'}`
+                }
+              }
+            } else if (grokUnderstanding.action === 'scan_wordpress') {
+              console.log('🔍 Action: Scanning WordPress site')
+              const isConnected = await wordpress.testConnection()
+              if (!isConnected) {
+                actionResult = `❌ Cannot scan - connection test failed.`
+              } else {
+                const [posts, pages, plugins, theme, postsCount, pagesCount] = await Promise.all([
+                  wordpress.getPosts(5).catch(() => []),
+                  wordpress.getPages(5).catch(() => []),
+                  wordpress.getPlugins().catch(() => []),
+                  wordpress.getTheme().catch(() => null),
+                  wordpress.getPostsCount().catch(() => 0),
+                  wordpress.getPagesCount().catch(() => 0)
+                ])
+                
+                actionResult = `✅ **WordPress Site Scan Complete!**\n\n**Site Overview:**\n- Site URL: ${storeUrl}\n- Total Posts: **${postsCount}**\n- Total Pages: **${pagesCount}**\n`
+                
+                if (theme) {
+                  actionResult += `- Active Theme: **${theme.name || 'Unknown'}**\n`
+                  if (theme.version) actionResult += `- Theme Version: ${theme.version}\n`
+                }
+                
+                const activePlugins = Array.isArray(plugins) ? plugins.filter((p: any) => p.status === 'active') : []
+                if (Array.isArray(plugins)) {
+                  actionResult += `- Total Plugins: **${plugins.length}** (${activePlugins.length} active)\n`
+                }
+              }
+            } else if (grokUnderstanding.action === 'get_info') {
+              console.log('ℹ️ Action: Getting info')
+              const isConnected = await wordpress.testConnection()
+              if (!isConnected) {
+                actionResult = `❌ Cannot fetch info - connection test failed.`
+              } else {
+                const [postsCount, pagesCount] = await Promise.all([
+                  wordpress.getPostsCount().catch(() => 0),
+                  wordpress.getPagesCount().catch(() => 0)
+                ])
+                actionResult = `**WordPress Site Information:**\n\n- 📝 Total Posts: **${postsCount}**\n- 📄 Total Pages: **${pagesCount}**\n`
+              }
             }
-          } else {
-            aiResponse = `Please connect your WordPress site first in Settings to view plugin information.`
+            
+            console.log('✅ Action executed. Result length:', actionResult.length)
+            
+          } catch (actionError) {
+            console.error('❌ Action execution error:', actionError)
+            actionResult = `❌ Error executing action: ${actionError instanceof Error ? actionError.message : 'Unknown error'}`
           }
-        } else if (lowerMessage.includes('wordpress') || lowerMessage.includes('what can you help') || lowerMessage.includes('what can you do')) {
-          // WordPress-specific help
-          aiResponse = `Great! I can help you optimize your WordPress site in many ways:
-
-**WordPress-Specific Features:**
-- **Theme Optimization**: Analyze and improve your active theme, customize CSS, optimize layouts
-- **Plugin Management**: Identify slow/problematic plugins, suggest optimizations, help with plugin conflicts
-- **Content Optimization**: Optimize posts, pages, and media for better performance and SEO
-- **Database Cleanup**: Help clean up revisions, spam comments, and optimize database tables
-- **Security Enhancements**: Improve security settings, suggest security plugins, and best practices
-- **SEO Improvements**: Optimize meta tags, permalinks, sitemaps, and content structure
-- **Performance Tuning**: Optimize caching, image compression, database queries, and page load speeds
-- **Site Health**: Monitor and improve WordPress site health scores
-
-**What I can do:**
-- Scan your WordPress site to identify issues
-- Provide specific optimization recommendations
-- Help implement changes through WordPress REST API
-- Analyze your theme and plugin performance
-- Optimize your content structure
-
-${storeInfo ? `I can see your WordPress site is connected. ` : `To get started, please connect your WordPress site in the settings with your site URL and application password. `}What specific area would you like to optimize?`
-        } else if (lowerMessage.includes('shopify')) {
-          // Shopify-specific help
-          aiResponse = `I can help you optimize your Shopify store in many ways:
-
-**Shopify-Specific Features:**
-- **Product Management**: Optimize product descriptions, images, variants, and collections
-- **Theme Customization**: Customize your Shopify theme, edit liquid files, optimize layouts
-- **Discounts & Promotions**: Create discount codes, automatic discounts, and promotional campaigns
-- **Shipping Configuration**: Set up shipping zones, rates, and fulfillment settings
-- **Store Performance**: Analyze and improve store speed, Core Web Vitals, and user experience
-- **SEO Optimization**: Optimize product SEO, meta descriptions, and store structure
-- **Inventory Management**: Help with product organization and inventory tracking
-
-${storeInfo ? `I can see your Shopify store is connected. ` : `To get started, please connect your Shopify store in the settings. `}What would you like to work on?`
-        } else if (storeInfo) {
-          // User has store data available
-          if (lowerMessage.includes('product') || lowerMessage.includes('show')) {
-            if (isWordPress) {
-              aiResponse = `Great! I can see your WordPress site data. Here's what I found:
-
-${storeInfo}
-
-For WordPress, I can help you with:
-- **Posts & Pages**: Optimize your content, improve SEO, and enhance readability
-- **Media Library**: Optimize images and organize your media files
-- **Theme Customization**: Customize your theme and improve design
-- **Plugin Optimization**: Manage and optimize your plugins
-- **SEO & Performance**: Improve search rankings and site speed
-
-What specific WordPress optimization would you like to work on?`
-            } else {
-              aiResponse = `Great! I can see your store data. Here's what I found:
-
-${storeInfo}
-
-I can help you with:
-- Product management and optimization
-- Theme customization and improvements
-- Creating discounts and promotions
-- Shipping configuration
-- SEO and performance optimization
-
-What specific changes would you like me to help you with?`
-            }
-          } else if (lowerMessage.includes('optimize') || lowerMessage.includes('improve')) {
-            if (isWordPress) {
-              aiResponse = `I'll help you optimize your WordPress site! Here are the key areas we can improve:
-
-1. **Theme Performance**: Optimize your active theme, reduce unused code, improve CSS/JS loading
-2. **Plugin Performance**: Identify slow plugins, optimize plugin usage, reduce conflicts
-3. **Database Optimization**: Clean up revisions, optimize database tables, improve query performance
-4. **Content SEO**: Optimize your posts and pages for better search rankings
-5. **Site Speed**: Improve caching, image optimization, and overall page load times
-6. **Security**: Enhance security settings and implement best practices
-
-Let me know which area you'd like to focus on first!`
-            } else {
-              aiResponse = `I'll help you optimize your ${storeType} store! Based on your current setup, here are the key areas we can improve:
-
-1. **Product Optimization**: Enhance descriptions, images, and pricing
-2. **Performance**: Speed up your store loading times
-3. **SEO**: Improve search engine visibility
-4. **User Experience**: Enhance navigation and checkout flow
-
-Let me know which area you'd like to focus on first!`
-            }
-          } else {
-            if (isWordPress) {
-              aiResponse = `I can see your WordPress site is connected! Here's what I found:
-
-${storeInfo}
-
-I can help you optimize your WordPress site with:
-- **Theme & Design**: Customize and optimize your WordPress theme
-- **Plugin Management**: Identify and optimize plugin performance
-- **Content Optimization**: Improve posts, pages, and media
-- **SEO & Performance**: Boost search rankings and site speed
-- **Security & Maintenance**: Enhance security and optimize database
-
-What WordPress optimization would you like to work on?`
-            } else {
-              aiResponse = `I have access to your store data and I'm ready to help! I can see:
-
-${storeInfo}
-
-I can assist you with product management, theme customization, creating discounts, shipping configuration, and much more. Just let me know what you'd like to work on!`
-            }
-          }
-        } else {
-          // No store data available
-          if (isWordPress) {
-            aiResponse = `I'd love to help you optimize your WordPress site! To provide the best assistance, I need to connect to your WordPress site.
-
-**To connect your WordPress site:**
-1. Go to Settings in the app
-2. Add your WordPress site URL
-3. Create an Application Password in WordPress (Users → Profile → Application Passwords)
-4. Enter the credentials
-
-Once connected, I can:
-- Scan your site for optimization opportunities
-- Analyze your theme and plugins
-- Help with SEO improvements
-- Optimize performance and security
-
-Would you like help setting up the connection, or is there a specific WordPress question I can answer now?`
-          } else {
-            aiResponse = `I'd love to help you with that! However, I need to reconnect your store to access the current data. Since I'm not able to retrieve your store's information directly, could you please reconnect your store in the settings so I can get the most up-to-date information?
-
-Once I have access to your store data, I'll be happy to show you your current setup and provide any assistance you need.`
-          }
-        }
-      } else {
-        // Fallback for non-authenticated users
-        if (storeInfo) {
-          aiResponse = `I have access to your store data and I'm ready to help! I can see:
-
-${storeInfo}
-
-I can assist you with product management, theme customization, creating discounts, shipping configuration, and much more. Just let me know what you'd like to work on!`
-        } else {
-          aiResponse = `Hi! I'm Fix It AI, your e-commerce optimization assistant. To get the most personalized help, please sign in and connect your store in the settings.
-
-I can help you with:
-- Product optimization
-- Theme customization
-- SEO improvements
-- Performance enhancements
-- And much more!
-
-What would you like to work on?`
         }
       }
+      
+      // Generate AI response using Gemini with full context
+      if (geminiApiKey && userId && contextManager) {
+        try {
+          // Build response message
+          const responseMessage = actionResult 
+            ? `User said: "${message}". I executed the action "${grokUnderstanding.action}" and got this result:\n\n${actionResult}\n\nPlease respond naturally and conversationally, acknowledging what was done.`
+            : `User said: "${message}". Understanding: ${grokUnderstanding.reasoning || 'No specific action needed'}. Please respond helpfully.`
+          
+          // Convert to Gemini message format (matching ChatTree)
+          const geminiResponseMessages = [{
+            role: 'user',
+            parts: [{ text: `You are a helpful WordPress site management assistant. Respond naturally and conversationally. Use markdown for formatting.\n\n${responseMessage}` }]
+          }]
+          
+          console.log('🤖 Generating AI response with Gemini...')
+          
+          const aiResponseCall = await fetch(`${apiBaseUrl}/models/${modelName}:generateContent?key=${geminiApiKey}`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              contents: geminiResponseMessages,
+              generationConfig: {
+                temperature: 0.7,
+                maxOutputTokens: 1000,
+                topP: 0.95,
+                topK: 40
+              }
+            })
+          })
+          
+          if (aiResponseCall.ok) {
+            const aiData = await aiResponseCall.json()
+            aiResponse = aiData.candidates?.[0]?.content?.parts?.[0]?.text || 
+                        aiData.text || 
+                        actionResult || 
+                        `I executed: ${grokUnderstanding.reasoning || 'your request'}`
+            console.log('✅ AI response generated successfully')
+          } else {
+            const errorText = await aiResponseCall.text()
+            console.error('❌ AI response generation error:', aiResponseCall.status, errorText)
+            aiResponse = actionResult || `I understand: ${grokUnderstanding.reasoning || 'your request'}, but encountered an error generating a response.`
+          }
+        } catch (error) {
+          console.error('❌ AI response generation error:', error)
+          aiResponse = actionResult || `I understand: ${grokUnderstanding.reasoning || 'your request'}, but encountered an error.`
+        }
+      } else {
+        // No API available - use action result
+        aiResponse = actionResult || `I understand: ${grokUnderstanding.reasoning || 'your request'}, but I need AI service to respond properly.`
+      }
+      
+    } catch (error) {
+      console.error('❌ MAIN ERROR:', error)
+      aiResponse = `❌ An error occurred: ${error instanceof Error ? error.message : 'Unknown error'}`
     }
-
+    
+    // No fallback templates - if we got here without a response, show error
+    if (!aiResponse) {
+      console.error('❌ No AI response generated')
+      aiResponse = `❌ I couldn't generate a response. Please check the console logs for details.`
+    }
+    
     // Send the response
     res.write(aiResponse)
-
+    
     // Save conversation context and training data
     if (contextManager && fineTuningService && userId) {
       try {
-        // Add conversation to context
         await contextManager.addConversationContext(message, aiResponse)
         
-        // Determine category for training data
-        let category = 'general'
-        if (message.toLowerCase().includes('product')) category = 'product_optimization'
-        else if (message.toLowerCase().includes('seo')) category = 'seo_optimization'
-        else if (message.toLowerCase().includes('performance') || message.toLowerCase().includes('speed')) category = 'performance'
-        else if (message.toLowerCase().includes('theme')) category = 'theme_optimization'
-        
-        // Use 'shopify' or 'wordpress' as default if storeType is not set
         const finalStoreType = storeType || 'shopify'
-        
-        // Collect training data
         await fineTuningService.collectTrainingData(
           message,
           aiResponse,
-          category,
+          'general',
           finalStoreType,
           connection?.url
         )
         
-        console.log('Training data collected and context updated', { 
-          userId, 
-          category, 
-          storeType: finalStoreType,
-          hasConnection: !!connection 
-        })
+        console.log('Training data collected and context updated')
       } catch (error) {
         console.error('Error saving training data:', error)
-        console.error('Error details:', error instanceof Error ? error.message : error)
       }
-    } else {
-      console.log('Skipping training data collection:', {
-        hasContextManager: !!contextManager,
-        hasFineTuningService: !!fineTuningService,
-        hasUserId: !!userId
-      })
     }
 
     res.end()
