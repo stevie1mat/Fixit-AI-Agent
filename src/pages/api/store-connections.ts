@@ -1,5 +1,6 @@
 import { NextApiRequest, NextApiResponse } from 'next'
 import { supabase } from '@/lib/supabase'
+import { createClient } from '@supabase/supabase-js'
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method === 'POST') {
@@ -89,10 +90,24 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       }
 
       console.log('Attempting to delete connection:', connectionId)
+      
+      // Create a dedicated client with service role key for DELETE operations
+      // This ensures RLS is bypassed even if the main client uses anon key
+      const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+      const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY
+      
+      let deleteClient = supabase
+      if (supabaseUrl && supabaseServiceKey) {
+        // Use service role key client for DELETE (bypasses RLS)
+        deleteClient = createClient(supabaseUrl, supabaseServiceKey)
+        console.log('✅ Using SERVICE_ROLE_KEY client for delete (bypasses RLS)')
+      } else {
+        console.warn('⚠️ SERVICE_ROLE_KEY not found, using default client (may be subject to RLS)')
+        console.warn('⚠️ Add SUPABASE_SERVICE_ROLE_KEY to Vercel environment variables')
+      }
 
-      // Try to delete directly - don't check first (RLS might block the SELECT but allow DELETE)
-      // If service role key is used, it should bypass RLS anyway
-      const { data, error } = await supabase
+      // Try to delete directly
+      const { data, error } = await deleteClient
         .from('store_connections')
         .delete()
         .eq('id', connectionId)
