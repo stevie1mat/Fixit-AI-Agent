@@ -65,15 +65,15 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       
       if (storeType === 'shopify') {
         // Shopify requires access token
-        if (!connection.access_token && !connection.accessToken) {
+      if (!connection.access_token && !connection.accessToken) {
           console.log('No access token found for Shopify')
           storeInfo = 'Store connected but access token not available. Please reconnect your Shopify store in settings.'
-        } else {
-          try {
-            const accessToken = connection.access_token || connection.accessToken
-            
+      } else {
+        try {
+          const accessToken = connection.access_token || connection.accessToken
+          
             console.log('Attempting to connect to Shopify store with URL:', storeUrl)
-            
+          
             const shopify = new ShopifyAPI(storeUrl, accessToken)
             
             // Scan store data
@@ -128,7 +128,7 @@ ${products.slice(0, 5).map(p => `- ${p.title} (${p.variants.length} variants)`).
             
             if (!isConnected) {
               storeInfo = `WordPress site connected but unable to authenticate. Please verify your username and application password in settings.`
-            } else {
+          } else {
               // Perform quick WordPress scan to get basic info
               const [posts, pages, postsCount, pagesCount] = await Promise.all([
                 wordpress.getPosts(5).catch(() => []), // Get 5 posts for display
@@ -143,23 +143,23 @@ ${products.slice(0, 5).map(p => `- ${p.title} (${p.variants.length} variants)`).
                 plugins: [],
                 theme: null,
                 options: {},
-                performance: {},
-                seo: {}
-              }
-              
-              storeInfo = `
+              performance: {},
+              seo: {}
+            }
+            
+            storeInfo = `
 WordPress Site Connected:
 - Site URL: ${storeUrl}
 - Posts: ${postsCount} total
 - Pages: ${pagesCount} total
 - Status: ✅ Connected and ready
-              `.trim()
-              
-              // Update AI context with store data
-              if (contextManager) {
-                await contextManager.addStoreContext(storeUrl, storeType, storeData)
-              }
-              
+            `.trim()
+          
+          // Update AI context with store data
+          if (contextManager) {
+            await contextManager.addStoreContext(storeUrl, storeType, storeData)
+          }
+          
               console.log('Successfully connected to WordPress site')
             }
           } catch (wpError) {
@@ -311,7 +311,7 @@ Examples:
             aiResponse += `4. Update the \`GEMINI_API_KEY\` environment variable in your .env file\n`
             aiResponse += `5. Restart your server\n\n`
             aiResponse += `Your current API key starts with: ${geminiApiKey ? geminiApiKey.substring(0, 10) : 'none'}...`
-          } else {
+        } else {
             aiResponse = `❌ Failed to understand your request.\n\n`
             aiResponse += `**Error:** ${errorMessage}\n\n`
             aiResponse += `**Status:** ${understandingResponse.status}\n\n`
@@ -528,7 +528,7 @@ Examples:
               const isConnected = await wordpress.testConnection()
               if (!isConnected) {
                 actionResult = `❌ Cannot fetch info - connection test failed.`
-              } else {
+      } else {
                 const [postsCount, pagesCount] = await Promise.all([
                   wordpress.getPostsCount().catch(() => 0),
                   wordpress.getPagesCount().catch(() => 0)
@@ -609,10 +609,10 @@ Examples:
       console.error('❌ No AI response generated')
       aiResponse = `❌ I couldn't generate a response. Please check the console logs for details.`
     }
-    
+
     // Send the response
     res.write(aiResponse)
-    
+
     // Save conversation context and training data
     if (contextManager && fineTuningService && userId) {
       try {

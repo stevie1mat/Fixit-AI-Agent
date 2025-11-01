@@ -1,15 +1,24 @@
 import { NextApiRequest, NextApiResponse } from 'next'
 import { supabase } from '@/lib/supabase'
 
+// Disable default body parser to handle raw body if needed
+export const config = {
+  api: {
+    bodyParser: {
+      sizeLimit: '1mb',
+    },
+  },
+}
+
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   try {
-    const { userId } = req.query
-
-    if (!userId || typeof userId !== 'string') {
-      return res.status(400).json({ error: 'User ID is required' })
-    }
-
     if (req.method === 'GET') {
+      // GET: userId comes from query string
+      const { userId } = req.query
+
+      if (!userId || typeof userId !== 'string') {
+        return res.status(400).json({ error: 'User ID is required' })
+      }
       // Get messages from Supabase (works on Vercel)
       try {
         const { data: contextData, error } = await supabase
@@ -48,11 +57,38 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     if (req.method === 'POST') {
       // Save messages to Supabase (works on Vercel)
-      const { userId: bodyUserId, messages } = req.body
+      // Log the raw request to debug
+      console.log('POST /api/messages - Raw request:', {
+        body: req.body,
+        bodyType: typeof req.body,
+        bodyKeys: req.body ? Object.keys(req.body) : 'no body',
+        contentType: req.headers['content-type'],
+      })
+      
+      // Handle case where body might be a string (shouldn't happen with bodyParser, but just in case)
+      let requestBody = req.body
+      if (typeof req.body === 'string') {
+        try {
+          requestBody = JSON.parse(req.body)
+        } catch (e) {
+          console.error('Failed to parse request body as JSON:', e)
+          return res.status(400).json({ error: 'Invalid JSON in request body' })
+        }
+      }
+      
+      const { userId: bodyUserId, messages } = requestBody || {}
 
       // For POST, userId must come from request body (not query)
       if (!bodyUserId || typeof bodyUserId !== 'string') {
-        return res.status(400).json({ error: 'User ID is required' })
+        console.error('Missing userId in request body:', { bodyUserId, body: req.body })
+        return res.status(400).json({ 
+          error: 'User ID is required',
+          received: { 
+            userId: bodyUserId, 
+            hasMessages: Array.isArray(messages),
+            bodyKeys: req.body ? Object.keys(req.body) : []
+          }
+        })
       }
 
       if (!Array.isArray(messages)) {
