@@ -106,12 +106,34 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         console.warn('⚠️ Add SUPABASE_SERVICE_ROLE_KEY to Vercel environment variables')
       }
 
+      // First, check if connection exists (for diagnostics)
+      const { data: existing, error: checkError } = await deleteClient
+        .from('store_connections')
+        .select('id, user_id, type, url')
+        .eq('id', connectionId)
+        .maybeSingle()
+
+      if (checkError) {
+        console.error('Error checking connection:', checkError)
+      } else if (existing) {
+        console.log('Connection found:', existing)
+      } else {
+        console.warn('Connection not found with ID:', connectionId)
+      }
+
       // Try to delete directly
       const { data, error } = await deleteClient
         .from('store_connections')
         .delete()
         .eq('id', connectionId)
         .select()
+
+      console.log('Delete result:', {
+        data: data ? `${data.length} rows` : 'null',
+        error: error ? error.message : 'none',
+        errorCode: error?.code,
+        errorDetails: error?.details
+      })
 
       if (error) {
         console.error('Error deleting connection:', error)
@@ -141,9 +163,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       // Check if anything was actually deleted
       if (!data || data.length === 0) {
         console.warn('No connection deleted - connection may not exist or RLS blocked:', connectionId)
+        console.warn('Existing connection check result:', existing ? 'Found' : 'Not found')
         return res.status(404).json({ 
           error: 'Connection not found or could not be deleted',
-          details: 'The connection either does not exist or you do not have permission to delete it'
+          details: existing 
+            ? 'Connection exists but delete returned 0 rows. Possible RLS or constraint issue.'
+            : 'Connection does not exist with the provided ID.',
+          connectionExists: !!existing
         })
       }
 
