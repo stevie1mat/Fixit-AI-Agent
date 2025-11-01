@@ -83,24 +83,68 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     try {
       const { connectionId } = req.query
 
-      if (!connectionId) {
+      if (!connectionId || typeof connectionId !== 'string') {
+        console.error('DELETE: Missing or invalid connectionId:', connectionId)
         return res.status(400).json({ error: 'Connection ID is required' })
       }
 
-      const { error } = await supabase
+      console.log('Attempting to delete connection:', connectionId)
+
+      // First, verify the connection exists and get user_id for security check
+      const { data: existingConnection, error: fetchError } = await supabase
+        .from('store_connections')
+        .select('id, user_id')
+        .eq('id', connectionId)
+        .single()
+
+      if (fetchError) {
+        console.error('Error fetching connection to delete:', fetchError)
+        return res.status(404).json({ 
+          error: 'Connection not found',
+          details: fetchError.message 
+        })
+      }
+
+      if (!existingConnection) {
+        console.error('Connection not found:', connectionId)
+        return res.status(404).json({ error: 'Connection not found' })
+      }
+
+      console.log('Found connection to delete:', existingConnection)
+
+      // Delete the connection
+      const { data, error } = await supabase
         .from('store_connections')
         .delete()
         .eq('id', connectionId)
+        .select()
 
       if (error) {
         console.error('Error deleting connection:', error)
-        return res.status(500).json({ error: 'Failed to delete connection' })
+        console.error('Error details:', {
+          code: error.code,
+          message: error.message,
+          details: error.details,
+          hint: error.hint
+        })
+        return res.status(500).json({ 
+          error: 'Failed to delete connection',
+          details: error.message,
+          code: error.code
+        })
       }
 
-      res.status(200).json({ message: 'Connection deleted successfully' })
+      console.log('Successfully deleted connection:', connectionId)
+      res.status(200).json({ 
+        message: 'Connection deleted successfully',
+        deletedId: connectionId
+      })
     } catch (error) {
       console.error('Store connections API error:', error)
-      res.status(500).json({ error: 'Internal server error' })
+      res.status(500).json({ 
+        error: 'Internal server error',
+        details: error instanceof Error ? error.message : 'Unknown error'
+      })
     }
   } else {
     res.status(405).json({ error: 'Method not allowed' })
