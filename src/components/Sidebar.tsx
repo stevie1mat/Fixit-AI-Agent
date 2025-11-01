@@ -1,6 +1,6 @@
 'use client'
 
-import { useAppStore } from '@/lib/store'
+import { useState, useEffect } from 'react'
 import { useAuth } from '@/contexts/AuthContext'
 import { Button } from '@/components/ui/Button'
 import { X, Settings, History, Store, Plus, Trash2, Sparkles, Zap, Link, Shield, Brain } from 'lucide-react'
@@ -11,23 +11,82 @@ interface SidebarProps {
   onClose: () => void
 }
 
+interface DatabaseConnection {
+  id: string
+  user_id: string
+  type: 'shopify' | 'wordpress'
+  url: string
+  username?: string
+  app_password?: string
+  access_token?: string
+  is_connected: boolean
+  created_at: string
+  updated_at: string
+}
+
 export function Sidebar({ isOpen, onClose }: SidebarProps) {
-  const { connections, removeConnection } = useAppStore()
   const { user } = useAuth()
+  const [connections, setConnections] = useState<DatabaseConnection[]>([])
+  const [loadingConnections, setLoadingConnections] = useState(true)
+
+  // Load connections from database
+  useEffect(() => {
+    if (user?.id) {
+      loadConnections()
+    } else {
+      setConnections([])
+      setLoadingConnections(false)
+    }
+  }, [user?.id])
+
+  // Reload connections when sidebar opens (in case connections were added elsewhere)
+  useEffect(() => {
+    if (isOpen && user?.id) {
+      loadConnections()
+    }
+  }, [isOpen, user?.id])
+
+  const loadConnections = async () => {
+    if (!user?.id) return
+    
+    setLoadingConnections(true)
+    try {
+      const response = await fetch(`/api/store-connections?userId=${user.id}`)
+      if (response.ok) {
+        const data = await response.json()
+        setConnections(data.connections || [])
+      } else {
+        console.error('Failed to load connections:', response.statusText)
+        setConnections([])
+      }
+    } catch (error) {
+      console.error('Error loading connections:', error)
+      setConnections([])
+    } finally {
+      setLoadingConnections(false)
+    }
+  }
 
   const handleRemoveConnection = async (connectionId: string) => {
-    // Remove from local store
-    removeConnection(connectionId)
+    if (!confirm('Are you sure you want to remove this connection?')) {
+      return
+    }
 
-    // Remove from database
-    if (user?.id) {
-      try {
-        await fetch(`/api/store-connections?connectionId=${connectionId}`, {
-          method: 'DELETE',
-        })
-      } catch (error) {
-        console.error('Failed to remove connection from database:', error)
+    try {
+      const response = await fetch(`/api/store-connections?connectionId=${connectionId}`, {
+        method: 'DELETE',
+      })
+
+      if (response.ok) {
+        // Reload connections after delete
+        await loadConnections()
+      } else {
+        const error = await response.json()
+        alert(`Failed to delete: ${error.error || 'Unknown error'}`)
       }
+    } catch (error) {
+      console.error('Failed to remove connection from database:', error)
+      alert('Failed to delete connection')
     }
   }
 
@@ -134,7 +193,14 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
                 </Button>
               </div>
               
-              {connections.length === 0 ? (
+              {loadingConnections ? (
+                <div className="text-center py-8">
+                  <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-gray-400 mx-auto mb-3" />
+                  <p className="text-sm font-urbanist font-light text-gray-600">
+                    Loading connections...
+                  </p>
+                </div>
+              ) : connections.length === 0 ? (
                 <div className="text-center py-8">
                   <div className="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-3">
                     <Store className="h-6 w-6 text-gray-400" />
@@ -164,7 +230,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
                         <div className="flex items-center space-x-2">
                           <div className={cn(
                             'w-2 h-2 rounded-full',
-                            connection.isConnected ? 'bg-green-500' : 'bg-red-500'
+                            connection.is_connected ? 'bg-green-500' : 'bg-red-500'
                           )} />
                           <span className="text-xs font-medium text-gray-600 uppercase tracking-wide">
                             {connection.type}
@@ -183,10 +249,15 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
                       <p className="text-sm font-urbanist font-light text-gray-700 truncate">
                         {connection.url}
                       </p>
+                      {connection.username && (
+                        <p className="text-xs font-urbanist font-light text-gray-500 mt-1">
+                          User: {connection.username}
+                        </p>
+                      )}
                       <div className="flex items-center space-x-1 mt-2">
                         <Shield className="h-3 w-3 text-green-500" />
                         <span className="text-xs font-urbanist font-light text-green-600">
-                          {connection.isConnected ? 'Connected' : 'Disconnected'}
+                          {connection.is_connected ? 'Connected' : 'Disconnected'}
                         </span>
                       </div>
                     </div>
