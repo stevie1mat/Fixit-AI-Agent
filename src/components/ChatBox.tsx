@@ -113,16 +113,9 @@ export function ChatBox() {
         updateLastMessage(assistantMessage)
       }
 
-      // After streaming completes, immediately save to Supabase
-      // The useMessageSync hook will also trigger, but we save explicitly here for reliability
-      if (user?.id) {
-        const { saveMessagesToBackend } = useAppStore.getState()
-        setTimeout(() => {
-          saveMessagesToBackend(user.id).catch(err => {
-            console.error('Failed to save messages after streaming:', err)
-          })
-        }, 300)
-      }
+      // Note: The chat API (AIContextManager) already saves messages to Supabase
+      // The useMessageSync hook will also save when messages change
+      // No need to save again here - let the hook handle it to avoid race conditions
     } catch (error) {
       console.error('Error sending message:', error)
       addMessage({

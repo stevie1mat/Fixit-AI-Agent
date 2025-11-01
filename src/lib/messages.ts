@@ -4,19 +4,30 @@ const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || ''
 
 export async function fetchMessagesFromBackend(userId: string): Promise<Message[]> {
   try {
-    const response = await fetch(`${API_BASE_URL}/api/messages?userId=${userId}`, {
+    const url = `${API_BASE_URL}/api/messages?userId=${userId}`
+    console.log('🟢 fetchMessagesFromBackend: Requesting from:', url)
+    
+    const response = await fetch(url, {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
       },
     })
 
+    console.log('🟢 fetchMessagesFromBackend: Response status:', response.status, response.ok)
+
     if (!response.ok) {
-      console.error('Failed to fetch messages:', response.status)
+      const errorText = await response.text()
+      console.error('🟢 fetchMessagesFromBackend: Failed to fetch:', {
+        status: response.status,
+        statusText: response.statusText,
+        error: errorText
+      })
       return []
     }
 
     const data = await response.json()
+    console.log('🟢 fetchMessagesFromBackend: Response data:', data)
     
     if (data.messages && Array.isArray(data.messages)) {
       // Convert ConversationMessage format to Message format
@@ -26,12 +37,14 @@ export async function fetchMessagesFromBackend(userId: string): Promise<Message[
         content: conv.content,
         timestamp: new Date(conv.timestamp || Date.now()),
       }))
+      console.log('🟢 fetchMessagesFromBackend: Converted messages:', messages.length)
       return messages
     }
 
+    console.log('🟢 fetchMessagesFromBackend: No messages in response')
     return []
   } catch (error) {
-    console.error('Error fetching messages from backend:', error)
+    console.error('🟢 fetchMessagesFromBackend: Exception:', error)
     return []
   }
 }

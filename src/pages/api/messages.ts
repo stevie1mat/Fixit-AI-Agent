@@ -16,21 +16,57 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       // GET: userId comes from query string
       const { userId } = req.query
 
+      console.log('🔷 GET /api/messages - Request:', { 
+        userId, 
+        userIdType: typeof userId,
+        query: req.query 
+      })
+
       if (!userId || typeof userId !== 'string') {
+        console.error('🔷 GET /api/messages - Missing userId')
         return res.status(400).json({ error: 'User ID is required' })
       }
+      
       // Get messages from Supabase (works on Vercel)
       try {
+        console.log('🔷 GET /api/messages - Querying Supabase AIContextWindow for userId:', userId)
+        
+        // First check if ANY rows exist for this user
+        const { data: allUserData } = await supabase
+          .from('AIContextWindow')
+          .select('*')
+          .eq('userId', userId)
+        
+        console.log('🔷 GET /api/messages - All rows for userId:', {
+          count: allUserData?.length || 0,
+          data: allUserData
+        })
+        
         const { data: contextData, error } = await supabase
           .from('AIContextWindow')
-          .select('recentMessages')
+          .select('recentMessages, userId, updatedAt')
           .eq('userId', userId)
           .maybeSingle()
 
+        console.log('🔷 GET /api/messages - Supabase response:', {
+          hasData: !!contextData,
+          contextData: contextData,
+          hasRecentMessages: !!contextData?.recentMessages,
+          recentMessagesType: typeof contextData?.recentMessages,
+          recentMessagesValue: contextData?.recentMessages,
+          error: error ? {
+            message: error.message,
+            code: error.code,
+            details: error.details,
+            hint: error.hint
+          } : null
+        })
+
         if (error) {
-          console.error('Error fetching messages:', error)
+          console.error('🔷 GET /api/messages - Error fetching messages:', error)
           // If table doesn't exist, return empty array instead of error
           if (error.code === 'PGRST116' || error.message?.includes('does not exist')) {
+            console.log('🔷 GET /api/messages - Table does not exist, returning empty array')
             return res.status(200).json({ messages: [] })
           }
           return res.status(500).json({ 
@@ -41,10 +77,17 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         }
 
         if (contextData && contextData.recentMessages) {
-          const messages = JSON.parse(contextData.recentMessages)
-          return res.status(200).json({ messages })
+          try {
+            const messages = JSON.parse(contextData.recentMessages)
+            console.log('🔷 GET /api/messages - Returning messages:', messages.length)
+            return res.status(200).json({ messages })
+          } catch (parseError) {
+            console.error('🔷 GET /api/messages - Error parsing recentMessages:', parseError)
+            return res.status(200).json({ messages: [] })
+          }
         }
 
+        console.log('🔷 GET /api/messages - No messages found, returning empty array')
         return res.status(200).json({ messages: [] })
       } catch (error) {
         console.error('Error in GET /api/messages:', error)
@@ -133,12 +176,34 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           upsertData.storeData = null
         }
 
-        const { error: saveError } = await supabase
+        console.log('🔷 POST /api/messages - Upserting to Supabase:', {
+          userId: bodyUserId,
+          messageCount: recentMessages.length,
+          upsertData: {
+            userId: upsertData.userId,
+            recentMessagesLength: upsertData.recentMessages?.length,
+            hasStoreConnectionId: !!upsertData.storeConnectionId
+          }
+        })
+
+        const { data: savedData, error: saveError } = await supabase
           .from('AIContextWindow')
-          .upsert(upsertData)
+          .upsert(upsertData, {
+            onConflict: 'userId' // Use userId as the conflict resolution column
+          })
+          .select()
+
+        console.log('🔷 POST /api/messages - Upsert response:', {
+          savedData,
+          error: saveError ? {
+            message: saveError.message,
+            code: saveError.code,
+            details: saveError.details
+          } : null
+        })
 
         if (saveError) {
-          console.error('Error saving messages:', saveError)
+          console.error('🔷 POST /api/messages - Error saving messages:', saveError)
           return res.status(500).json({ 
             error: 'Failed to save messages',
             details: saveError.message || 'Unknown error',
@@ -146,6 +211,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           })
         }
 
+        console.log('🔷 POST /api/messages - Successfully saved messages:', { messageCount: recentMessages.length })
         return res.status(200).json({ success: true, messageCount: recentMessages.length })
       } catch (error) {
         console.error('Error in POST /api/messages:', error)

@@ -105,30 +105,32 @@ export const useAppStore = create<AppState>()(
 
       loadMessagesFromBackend: async (userId: string) => {
         try {
-          console.log('Loading messages from Supabase...', { userId })
+          console.log('🔵 loadMessagesFromBackend: Starting...', { userId })
 
           // Only load from Supabase - no localStorage
-          if (userId) {
-            try {
-              const backendMessages = await fetchMessagesFromBackend(userId)
-              console.log('Fetched messages from Supabase:', { 
-                backendMessageCount: backendMessages.length
-              })
-              
-              // Always use Supabase as source of truth
-              set({ messages: backendMessages || [] })
-            } catch (backendError) {
-              console.error('Error loading from Supabase:', backendError)
-              // Set empty array if backend fails
-              set({ messages: [] })
-            }
-          } else {
-            set({ messages: [] })
+          if (!userId) {
+            console.warn('🔵 loadMessagesFromBackend: No userId provided')
+            set({ messages: [], isLoaded: true })
+            return
           }
 
-          set({ isLoaded: true })
+          try {
+            console.log('🔵 loadMessagesFromBackend: Fetching from Supabase API...')
+            const backendMessages = await fetchMessagesFromBackend(userId)
+            console.log('🔵 loadMessagesFromBackend: Success!', { 
+              backendMessageCount: backendMessages.length,
+              messages: backendMessages
+            })
+            
+            // Always use Supabase as source of truth
+            set({ messages: backendMessages || [], isLoaded: true })
+          } catch (backendError) {
+            console.error('🔴 loadMessagesFromBackend: Error loading from Supabase:', backendError)
+            // Set empty array if backend fails
+            set({ messages: [], isLoaded: true })
+          }
         } catch (error) {
-          console.error('Error loading messages:', error)
+          console.error('🔴 loadMessagesFromBackend: Unexpected error:', error)
           set({ messages: [], isLoaded: true })
         }
       },

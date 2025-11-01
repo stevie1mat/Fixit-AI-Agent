@@ -47,30 +47,63 @@ export class AIContextManager {
   // Load context from database
   async loadContext(storeConnectionId?: string) {
     try {
+      console.log('📝 AIContextManager.loadContext: Loading...', { 
+        userId: this.userId, 
+        storeConnectionId 
+      })
+      
       const { data: contextData, error } = await supabase
         .from('AIContextWindow')
         .select('*')
         .eq('userId', this.userId)
-        .eq('storeConnectionId', storeConnectionId || null)
-        .single()
+        // Don't filter by storeConnectionId - get any context for this user
+        .maybeSingle()
 
       if (contextData && !error) {
+        const loadedMessages = contextData.recentMessages ? JSON.parse(contextData.recentMessages) : []
+        console.log('📝 AIContextManager.loadContext: Loaded context', {
+          messageCount: loadedMessages.length,
+          hasStoreData: !!contextData.storeData,
+          hasIssues: !!contextData.currentIssues
+        })
+        
         this.contextWindow = {
           storeData: contextData.storeData ? JSON.parse(contextData.storeData) : null,
-          recentConversations: contextData.recentMessages ? JSON.parse(contextData.recentMessages) : [],
+          recentConversations: loadedMessages,
           currentIssues: contextData.currentIssues ? JSON.parse(contextData.currentIssues) : [],
           optimizationHistory: contextData.optimizationHistory ? JSON.parse(contextData.optimizationHistory) : []
         }
+      } else {
+        console.log('📝 AIContextManager.loadContext: No existing context found, starting fresh')
+        this.contextWindow = {
+          storeData: null,
+          recentConversations: [],
+          currentIssues: [],
+          optimizationHistory: []
+        }
       }
     } catch (error) {
-      console.error('Error loading AI context:', error)
+      console.error('📝 AIContextManager.loadContext: Error loading:', error)
+      // Initialize empty context on error
+      this.contextWindow = {
+        storeData: null,
+        recentConversations: [],
+        currentIssues: [],
+        optimizationHistory: []
+      }
     }
   }
 
   // Save context to database
   async saveContext(storeConnectionId?: string) {
     try {
-      const { error } = await supabase
+      console.log('📝 AIContextManager.saveContext: Saving context...', {
+        userId: this.userId,
+        messageCount: this.contextWindow.recentConversations.length,
+        storeConnectionId
+      })
+
+      const { data, error } = await supabase
         .from('AIContextWindow')
         .upsert({
           userId: this.userId,
@@ -80,18 +113,31 @@ export class AIContextManager {
           optimizationHistory: JSON.stringify(this.contextWindow.optimizationHistory),
           storeData: this.contextWindow.storeData ? JSON.stringify(this.contextWindow.storeData) : null,
           updatedAt: new Date()
+        }, {
+          onConflict: 'userId' // Use userId as the conflict resolution column
         })
+        .select()
 
       if (error) {
-        console.error('Error saving AI context:', error)
+        console.error('📝 AIContextManager.saveContext: Error saving:', error)
+      } else {
+        console.log('📝 AIContextManager.saveContext: Successfully saved', {
+          savedData: data,
+          messageCount: this.contextWindow.recentConversations.length
+        })
       }
     } catch (error) {
-      console.error('Error saving AI context:', error)
+      console.error('📝 AIContextManager.saveContext: Exception:', error)
     }
   }
 
   // Add store-specific context
-  async addStoreContext(storeUrl: string, storeType: 'shopify' | 'wordpress', storeData: any) {
+  // During chat processing, this only updates in-memory storeData.
+  // Context is saved later by addConversationContext to avoid overwriting messages.
+  async addStoreContext(storeUrl: string, storeType: 'shopify' | 'wordpress', storeData: any, skipSave: boolean = false) {
+    // Preserve existing messages when updating store context
+    const existingMessages = this.contextWindow.recentConversations || []
+    
     this.contextWindow.storeData = {
       url: storeUrl,
       type: storeType,
@@ -102,7 +148,19 @@ export class AIContextManager {
       currentIssues: this.contextWindow.currentIssues
     }
 
-    await this.saveContext()
+    // Ensure messages are preserved
+    this.contextWindow.recentConversations = existingMessages
+    
+    console.log('📝 addStoreContext: Updating store context', { 
+      messageCount: existingMessages.length,
+      skipSave
+    })
+    
+    // Only save if skipSave is false (e.g., when called from settings page)
+    // During chat processing, skipSave=true so addConversationContext handles the save
+    if (!skipSave) {
+      await this.saveContext()
+    }
   }
 
   // Add conversation context

@@ -99,8 +99,9 @@ ${products.slice(0, 5).map(p => `- ${p.title} (${p.variants.length} variants)`).
             `.trim()
             
             // Update AI context with store data
+            // Skip saving here - addConversationContext will save everything together
             if (contextManager) {
-              await contextManager.addStoreContext(storeUrl, storeType, storeData)
+              await contextManager.addStoreContext(storeUrl, storeType, storeData, true)
             }
             
             console.log('Successfully retrieved Shopify store data')
@@ -169,8 +170,9 @@ WordPress Site Connected:
             `.trim()
           
           // Update AI context with store data
+          // Skip saving here - addConversationContext will save everything together
           if (contextManager) {
-            await contextManager.addStoreContext(storeUrl, storeType, storeData)
+            await contextManager.addStoreContext(storeUrl, storeType, storeData, true)
           }
           
               console.log('Successfully connected to WordPress site')
@@ -216,6 +218,22 @@ WordPress Site Connected:
       aiResponse += `5. Add to your .env file: \`GEMINI_API_KEY=your_key_here\`\n`
       aiResponse += `6. Restart your server\n\n`
       aiResponse += `**Current Status:** No API key configured`
+      
+      // Save conversation context even when API key is missing
+      if (contextManager && userId) {
+        try {
+          console.log('💾 Chat API: Saving conversation context (no API key)...', {
+            userId,
+            messageLength: message.length,
+            responseLength: aiResponse.length
+          })
+          await contextManager.addConversationContext(message, aiResponse)
+          console.log('💾 Chat API: Conversation context saved successfully (no API key)')
+        } catch (saveError) {
+          console.error('Error saving conversation context (no API key):', saveError)
+        }
+      }
+      
       res.write(aiResponse)
       res.end()
       return
@@ -223,6 +241,8 @@ WordPress Site Connected:
     
     if (!userId || !contextManager) {
       aiResponse = `❌ Please sign in to use AI features.`
+      
+      // Can't save without userId or contextManager, so just send response
       res.write(aiResponse)
       res.end()
       return
@@ -335,6 +355,22 @@ Examples:
           console.error('❌ GROK UNDERSTANDING FAILED - Could not parse error:', errorText.substring(0, 500))
           aiResponse = `❌ Failed to understand your request. API error: ${understandingResponse.status}\n\nError: ${errorText.substring(0, 200)}`
         }
+        
+        // Save conversation context even when AI request fails
+        if (contextManager && userId && aiResponse) {
+          try {
+            console.log('💾 Chat API: Saving conversation context (after AI failure)...', {
+              userId,
+              messageLength: message.length,
+              responseLength: aiResponse.length
+            })
+            await contextManager.addConversationContext(message, aiResponse)
+            console.log('💾 Chat API: Conversation context saved successfully (after AI failure)')
+          } catch (saveError) {
+            console.error('Error saving conversation context after AI failure:', saveError)
+          }
+        }
+        
         res.write(aiResponse)
         res.end()
         return
@@ -680,7 +716,13 @@ Examples:
     // Save conversation context and training data
     if (contextManager && fineTuningService && userId) {
       try {
+        console.log('💾 Chat API: Saving conversation context...', {
+          userId,
+          messageLength: message.length,
+          responseLength: aiResponse.length
+        })
         await contextManager.addConversationContext(message, aiResponse)
+        console.log('💾 Chat API: Conversation context saved successfully')
         
         const finalStoreType = storeType || 'shopify'
         await fineTuningService.collectTrainingData(

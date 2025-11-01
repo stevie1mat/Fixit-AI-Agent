@@ -11,7 +11,10 @@ CREATE TABLE IF NOT EXISTS public."AIContextWindow" (
   "updatedAt" TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
--- Create index for faster lookups by userId
+-- Create unique constraint on userId to ensure one record per user
+CREATE UNIQUE INDEX IF NOT EXISTS idx_aicontextwindow_userid_unique ON public."AIContextWindow"("userId");
+
+-- Create index for faster lookups by userId (if not already created above)
 CREATE INDEX IF NOT EXISTS idx_aicontextwindow_userid ON public."AIContextWindow"("userId");
 
 -- Enable Row Level Security
