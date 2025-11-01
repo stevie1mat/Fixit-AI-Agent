@@ -47,16 +47,35 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
   }, [isOpen, user?.id])
 
   const loadConnections = async () => {
-    if (!user?.id) return
+    if (!user?.id) {
+      console.log('Cannot load connections: no user ID', { user })
+      return
+    }
     
     setLoadingConnections(true)
     try {
+      console.log('Loading connections for user:', user.id)
       const response = await fetch(`/api/store-connections?userId=${user.id}`)
+      console.log('Store connections API response:', { 
+        status: response.status, 
+        ok: response.ok,
+        statusText: response.statusText 
+      })
+      
       if (response.ok) {
         const data = await response.json()
+        console.log('Received connections data:', { 
+          connectionCount: data.connections?.length || 0,
+          connections: data.connections 
+        })
         setConnections(data.connections || [])
       } else {
-        console.error('Failed to load connections:', response.statusText)
+        const errorData = await response.json().catch(() => ({ error: 'Unknown error' }))
+        console.error('Failed to load connections:', { 
+          status: response.status,
+          statusText: response.statusText,
+          error: errorData 
+        })
         setConnections([])
       }
     } catch (error) {

@@ -11,8 +11,9 @@ import ReactMarkdown from 'react-markdown'
 export function ChatBox() {
   const [input, setInput] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [connections, setConnections] = useState<any[]>([])
   const messagesEndRef = useRef<HTMLDivElement>(null)
-  const { messages, addMessage, setLoading, isLoading, updateLastMessage, connections, clearMessages } = useAppStore()
+  const { messages, addMessage, setLoading, isLoading, updateLastMessage, clearMessages } = useAppStore()
   const { user } = useAuth()
 
   const scrollToBottom = () => {
@@ -22,6 +23,39 @@ export function ChatBox() {
   useEffect(() => {
     scrollToBottom()
   }, [messages])
+
+  // Load connections from Supabase
+  useEffect(() => {
+    if (user?.id) {
+      const loadConnections = async () => {
+        try {
+          console.log('ChatBox: Loading connections for user:', user.id)
+          const response = await fetch(`/api/store-connections?userId=${user.id}`)
+          console.log('ChatBox: Store connections API response:', { 
+            status: response.status, 
+            ok: response.ok 
+          })
+          
+          if (response.ok) {
+            const data = await response.json()
+            console.log('ChatBox: Received connections:', { 
+              count: data.connections?.length || 0,
+              connections: data.connections 
+            })
+            setConnections(data.connections || [])
+          } else {
+            const errorData = await response.json().catch(() => ({ error: 'Unknown error' }))
+            console.error('ChatBox: Failed to load connections:', errorData)
+          }
+        } catch (error) {
+          console.error('ChatBox: Error loading connections:', error)
+        }
+      }
+      loadConnections()
+    } else {
+      console.log('ChatBox: No user ID, skipping connection load')
+    }
+  }, [user?.id])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -39,7 +73,6 @@ export function ChatBox() {
     })
 
     try {
-      console.log('Sending connections to API:', connections)
       const response = await fetch('/api/chat', {
         method: 'POST',
         headers: {
@@ -47,7 +80,6 @@ export function ChatBox() {
         },
         body: JSON.stringify({
           message: userMessage,
-          storeData: { connections },
           userId: user?.id,
         }),
       })
@@ -79,6 +111,17 @@ export function ChatBox() {
 
         // Update the last message (assistant's message)
         updateLastMessage(assistantMessage)
+      }
+
+      // After streaming completes, immediately save to Supabase
+      // The useMessageSync hook will also trigger, but we save explicitly here for reliability
+      if (user?.id) {
+        const { saveMessagesToBackend } = useAppStore.getState()
+        setTimeout(() => {
+          saveMessagesToBackend(user.id).catch(err => {
+            console.error('Failed to save messages after streaming:', err)
+          })
+        }, 300)
       }
     } catch (error) {
       console.error('Error sending message:', error)

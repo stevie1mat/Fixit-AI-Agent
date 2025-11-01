@@ -27,7 +27,6 @@ export default function SettingsPage() {
   const [testResult, setTestResult] = useState<'success' | 'error' | null>(null)
   const [connections, setConnections] = useState<DatabaseConnection[]>([])
   const [loadingConnections, setLoadingConnections] = useState(true)
-  const { addConnection } = useAppStore()
   const { user } = useAuth()
 
   // Shopify form state
@@ -51,17 +50,27 @@ export default function SettingsPage() {
   }, [user?.id])
 
   const loadConnections = async () => {
-    if (!user?.id) return
+    if (!user?.id) {
+      console.log('Settings: Cannot load connections - no user ID')
+      return
+    }
     
     setLoadingConnections(true)
     try {
+      console.log('Settings: Loading connections for user:', user.id)
       const response = await fetch(`/api/store-connections?userId=${user.id}`)
+      console.log('Settings: API response:', { status: response.status, ok: response.ok })
+      
       if (response.ok) {
         const data = await response.json()
+        console.log('Settings: Received connections:', { count: data.connections?.length || 0 })
         setConnections(data.connections || [])
+      } else {
+        const errorData = await response.json().catch(() => ({ error: 'Unknown error' }))
+        console.error('Settings: Failed to load connections:', errorData)
       }
     } catch (error) {
-      console.error('Error loading connections:', error)
+      console.error('Settings: Error loading connections:', error)
     } finally {
       setLoadingConnections(false)
     }
@@ -113,15 +122,7 @@ export default function SettingsPage() {
       if (response.ok) {
         setTestResult('success')
         
-        // Add to local store
-        addConnection({
-          type: 'shopify',
-          url: shopifyForm.storeUrl,
-          accessToken: shopifyForm.accessToken,
-          isConnected: true,
-        })
-
-        // Store in database
+        // Store in Supabase database
         if (user?.id) {
           try {
             await fetch('/api/store-connections', {
@@ -176,15 +177,7 @@ export default function SettingsPage() {
       if (response.ok) {
         setTestResult('success')
         
-        // Add to local store
-        addConnection({
-          type: 'wordpress',
-          url: wordpressForm.baseUrl,
-          accessToken: wordpressForm.appPassword,
-          isConnected: true,
-        })
-
-        // Store in database
+        // Store in Supabase database
         if (user?.id) {
           try {
             await fetch('/api/store-connections', {

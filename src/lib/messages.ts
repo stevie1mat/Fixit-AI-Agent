@@ -43,16 +43,17 @@ export async function saveMessagesToBackend(userId: string, messages: Message[])
       return
     }
 
+    // Always send messages array (can be empty to clear Supabase)
     const requestBody = {
       userId,
       messages: messages.map((msg) => ({
         role: msg.role,
         content: msg.content,
-        timestamp: msg.timestamp,
+        timestamp: msg.timestamp instanceof Date ? msg.timestamp.toISOString() : msg.timestamp,
       })),
     }
 
-    console.log('Saving messages to backend:', { userId, messageCount: messages.length })
+    console.log('Saving messages to Supabase:', { userId, messageCount: messages.length })
 
     const response = await fetch(`${API_BASE_URL}/api/messages`, {
       method: 'POST',
@@ -64,11 +65,13 @@ export async function saveMessagesToBackend(userId: string, messages: Message[])
 
     if (!response.ok) {
       const errorText = await response.text()
-      console.error('Failed to save messages:', response.status, errorText)
+      console.error('Failed to save messages to Supabase:', response.status, errorText)
       throw new Error(`Failed to save: ${response.status} ${errorText}`)
     }
+
+    console.log('Messages saved successfully to Supabase')
   } catch (error) {
-    console.error('Error saving messages to backend:', error)
+    console.error('Error saving messages to Supabase:', error)
     throw error
   }
 }

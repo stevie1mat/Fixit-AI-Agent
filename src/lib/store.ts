@@ -44,9 +44,6 @@ interface AppState {
   isLoading: boolean
   isLoaded: boolean // Track if messages have been loaded from backend
   
-  // Store connections
-  connections: StoreConnection[]
-  
   // Change preview
   currentPreview: ChangePreview | null
   
@@ -59,8 +56,6 @@ interface AppState {
   setLoaded: (loaded: boolean) => void
   loadMessagesFromBackend: (userId: string) => Promise<void>
   saveMessagesToBackend: (userId: string) => Promise<void>
-  addConnection: (connection: Omit<StoreConnection, 'id'>) => void
-  removeConnection: (id: string) => void
   setCurrentPreview: (preview: ChangePreview | null) => void
 }
 
@@ -70,7 +65,6 @@ export const useAppStore = create<AppState>()(
       messages: [],
       isLoading: false,
       isLoaded: false,
-      connections: [],
       currentPreview: null,
 
       addMessage: (message) => {
@@ -111,67 +105,53 @@ export const useAppStore = create<AppState>()(
 
       loadMessagesFromBackend: async (userId: string) => {
         try {
-          // Get current messages from Zustand state (already loaded from localStorage via persist)
-          const currentMessages = get().messages
+          console.log('Loading messages from Supabase...', { userId })
 
-          // Sync with backend if user is logged in
+          // Only load from Supabase - no localStorage
           if (userId) {
             try {
               const backendMessages = await fetchMessagesFromBackend(userId)
-              if (backendMessages.length > 0) {
-                // Merge backend messages with local (backend takes precedence if different)
-                // Or use backend if local is empty
-                if (currentMessages.length === 0 || backendMessages.length > currentMessages.length) {
-                  set({ messages: backendMessages })
-                  // Zustand persist will automatically save to localStorage
-                }
-              }
+              console.log('Fetched messages from Supabase:', { 
+                backendMessageCount: backendMessages.length
+              })
+              
+              // Always use Supabase as source of truth
+              set({ messages: backendMessages || [] })
             } catch (backendError) {
-              console.error('Error loading from backend:', backendError)
-              // Continue with local messages if backend fails
+              console.error('Error loading from Supabase:', backendError)
+              // Set empty array if backend fails
+              set({ messages: [] })
             }
+          } else {
+            set({ messages: [] })
           }
 
           set({ isLoaded: true })
         } catch (error) {
           console.error('Error loading messages:', error)
-          set({ isLoaded: true })
+          set({ messages: [], isLoaded: true })
         }
       },
 
       saveMessagesToBackend: async (userId: string) => {
         const { messages } = get()
-        if (!userId || messages.length === 0) {
+        if (!userId) {
+          console.log('Skipping save - no userId', { userId })
           return
         }
 
         try {
+          console.log('Saving messages to Supabase...', { userId, messageCount: messages.length })
+          // Always save to Supabase, even if empty (to clear/keep in sync)
           await saveMessagesToBackend(userId, messages)
-          console.log('Messages saved successfully to backend')
+          console.log('Messages saved successfully to Supabase', { messageCount: messages.length })
         } catch (error) {
-          console.error('Error saving to backend:', error)
-          // Continue - local storage is still saved
+          console.error('Error saving to Supabase:', error)
         }
       },
 
       clearMessages: () => {
         set({ messages: [] })
-      },
-
-      addConnection: (connection) => {
-        const newConnection: StoreConnection = {
-          ...connection,
-          id: generateId(),
-        }
-        set((state) => ({
-          connections: [...state.connections, newConnection],
-        }))
-      },
-
-      removeConnection: (id) => {
-        set((state) => ({
-          connections: state.connections.filter((conn) => conn.id !== id),
-        }))
       },
 
       setCurrentPreview: (preview) => {
@@ -181,11 +161,7 @@ export const useAppStore = create<AppState>()(
     {
       name: 'fixit-ai-storage',
       partialize: (state) => ({
-        messages: state.messages.map((msg) => ({
-          ...msg,
-          timestamp: msg.timestamp instanceof Date ? msg.timestamp.toISOString() : msg.timestamp,
-        })),
-        connections: state.connections,
+        // Don't persist messages to localStorage - use Supabase only
       }),
       // Use createJSONStorage with safe localStorage access
       storage: isBrowser 
@@ -195,15 +171,6 @@ export const useAppStore = create<AppState>()(
             setItem: () => {},
             removeItem: () => {},
           })),
-      onRehydrateStorage: () => (state) => {
-        // Convert timestamp strings back to Date objects after rehydration
-        if (state?.messages && Array.isArray(state.messages)) {
-          state.messages = state.messages.map((msg: any) => ({
-            ...msg,
-            timestamp: msg.timestamp ? new Date(msg.timestamp) : new Date(),
-          }))
-        }
-      },
     }
   )
 )

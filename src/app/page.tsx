@@ -16,7 +16,7 @@ import { Settings, History, Zap, LogOut, User } from 'lucide-react'
 export default function Home() {
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [loginDialogOpen, setLoginDialogOpen] = useState(false)
-  const { currentPreview, connections } = useAppStore()
+  const { currentPreview } = useAppStore()
   const { user, signOut, loading } = useAuth()
   
   // Sync messages with backend

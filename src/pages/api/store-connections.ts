@@ -58,10 +58,19 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     try {
       const { userId } = req.query
 
-      if (!userId) {
+      console.log('GET /api/store-connections - Request:', { 
+        userId, 
+        userIdType: typeof userId,
+        query: req.query,
+        supabaseUrl: process.env.NEXT_PUBLIC_SUPABASE_URL ? 'Set' : 'Missing'
+      })
+
+      if (!userId || typeof userId !== 'string') {
+        console.error('GET /api/store-connections - Missing or invalid userId:', userId)
         return res.status(400).json({ error: 'User ID is required' })
       }
 
+      console.log('GET /api/store-connections - Fetching from Supabase for userId:', userId)
       const { data, error } = await supabase
         .from('store_connections')
         .select('*')
@@ -69,12 +78,28 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         .eq('is_connected', true)
         .order('created_at', { ascending: false })
 
+      console.log('GET /api/store-connections - Supabase response:', {
+        dataCount: data?.length || 0,
+        data: data,
+        error: error ? {
+          message: error.message,
+          code: error.code,
+          details: error.details,
+          hint: error.hint
+        } : null
+      })
+
       if (error) {
         console.error('Error fetching connections:', error)
-        return res.status(500).json({ error: 'Failed to fetch connections' })
+        return res.status(500).json({ 
+          error: 'Failed to fetch connections',
+          details: error.message,
+          code: error.code
+        })
       }
 
-      res.status(200).json({ connections: data })
+      console.log('GET /api/store-connections - Returning connections:', data?.length || 0)
+      res.status(200).json({ connections: data || [] })
     } catch (error) {
       console.error('Store connections API error:', error)
       res.status(500).json({ error: 'Internal server error' })
