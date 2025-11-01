@@ -90,29 +90,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
       console.log('Attempting to delete connection:', connectionId)
 
-      // First, verify the connection exists and get user_id for security check
-      const { data: existingConnection, error: fetchError } = await supabase
-        .from('store_connections')
-        .select('id, user_id')
-        .eq('id', connectionId)
-        .single()
-
-      if (fetchError) {
-        console.error('Error fetching connection to delete:', fetchError)
-        return res.status(404).json({ 
-          error: 'Connection not found',
-          details: fetchError.message 
-        })
-      }
-
-      if (!existingConnection) {
-        console.error('Connection not found:', connectionId)
-        return res.status(404).json({ error: 'Connection not found' })
-      }
-
-      console.log('Found connection to delete:', existingConnection)
-
-      // Delete the connection
+      // Try to delete directly - don't check first (RLS might block the SELECT but allow DELETE)
+      // If service role key is used, it should bypass RLS anyway
       const { data, error } = await supabase
         .from('store_connections')
         .delete()
@@ -127,6 +106,16 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           details: error.details,
           hint: error.hint
         })
+        
+        // If it's a RLS/permission error, provide helpful message
+        if (error.code === '42501' || error.message?.includes('permission') || error.message?.includes('policy')) {
+          return res.status(403).json({ 
+            error: 'Permission denied - RLS policy blocking delete',
+            details: 'The Row Level Security policy is preventing deletion. Please check RLS policies or use service role key.',
+            code: error.code
+          })
+        }
+        
         return res.status(500).json({ 
           error: 'Failed to delete connection',
           details: error.message,
@@ -134,10 +123,20 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         })
       }
 
-      console.log('Successfully deleted connection:', connectionId)
+      // Check if anything was actually deleted
+      if (!data || data.length === 0) {
+        console.warn('No connection deleted - connection may not exist or RLS blocked:', connectionId)
+        return res.status(404).json({ 
+          error: 'Connection not found or could not be deleted',
+          details: 'The connection either does not exist or you do not have permission to delete it'
+        })
+      }
+
+      console.log('Successfully deleted connection:', connectionId, 'Rows deleted:', data.length)
       res.status(200).json({ 
         message: 'Connection deleted successfully',
-        deletedId: connectionId
+        deletedId: connectionId,
+        deleted: data[0]
       })
     } catch (error) {
       console.error('Store connections API error:', error)
