@@ -114,9 +114,22 @@ ${products.slice(0, 5).map(p => `- ${p.title} (${p.variants.length} variants)`).
         const username = (connection as any).username || connection.username
         const appPassword = (connection as any).app_password || (connection as any).appPassword || connection.appPassword
         
+        console.log('WordPress connection details:', {
+          hasConnection: !!connection,
+          hasUsername: !!username,
+          hasAppPassword: !!appPassword,
+          connectionKeys: connection ? Object.keys(connection) : [],
+          connectionType: connection?.type,
+          connectionUrl: connection?.url
+        })
+        
         if (!username || !appPassword) {
-          console.log('WordPress credentials incomplete')
-          storeInfo = 'WordPress site connected but credentials are incomplete. Please check your WordPress username and application password in settings.'
+          console.log('WordPress credentials incomplete', {
+            username: username ? 'present' : 'missing',
+            appPassword: appPassword ? 'present' : 'missing',
+            connectionData: connection
+          })
+          storeInfo = `WordPress site connected but credentials are incomplete. Please reconnect your WordPress site in Settings.\n\nMissing: ${!username ? 'Username' : ''} ${!appPassword ? 'App Password' : ''}`
         } else {
           try {
             console.log('Attempting to connect to WordPress site with URL:', storeUrl)
@@ -407,10 +420,20 @@ Examples:
           hasUsername: !!username, 
           hasAppPassword: !!appPassword, 
           hasUrl: !!storeUrl,
-          connectionKeys: Object.keys(connection)
+          connectionKeys: Object.keys(connection),
+          connectionData: JSON.stringify(connection, null, 2)
         })
         
-        if (username && appPassword && storeUrl) {
+        if (!username || !appPassword) {
+          console.error('❌ WordPress credentials missing in connection:', {
+            username: username || 'MISSING',
+            appPassword: appPassword ? 'present' : 'MISSING',
+            allKeys: Object.keys(connection)
+          })
+          actionResult = `❌ **WordPress Credentials Missing**\n\nYour WordPress connection exists, but the username and/or app password are not stored.\n\n**To fix this:**\n1. Go to Settings → Connections\n2. Disconnect your current WordPress connection\n3. Reconnect with your username and application password\n\nThis is needed because the database schema was updated to properly store WordPress credentials.`
+        } else if (!storeUrl) {
+          actionResult = `❌ **WordPress URL Missing**\n\nYour WordPress connection is missing the site URL. Please reconnect in Settings.`
+        } else if (username && appPassword && storeUrl) {
           try {
             const wordpress = new WordPressAPI(storeUrl, username, appPassword)
             
