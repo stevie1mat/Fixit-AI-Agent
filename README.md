@@ -8,7 +8,7 @@ An AI-powered assistant that connects to Shopify & WordPress to scan, fix, and v
 
 ### AI-Powered Chat Interface
 - **Natural Language Processing**: Describe issues in plain English
-- **Streaming Responses**: Real-time AI responses using Grok API
+- **Streaming Responses**: Real-time AI responses using Google Gemini API
 - **Context Awareness**: AI understands your store structure and suggests relevant fixes
 
 ### Shopify Integration
@@ -58,7 +58,7 @@ An AI-powered assistant that connects to Shopify & WordPress to scan, fix, and v
 ### Prerequisites
 - Node.js 18+ 
 - npm or yarn
-- Grok API key
+- Google Gemini API key (for AI chat features)
 - Shopify/WordPress credentials
 
 ### Setup
@@ -84,8 +84,9 @@ An AI-powered assistant that connects to Shopify & WordPress to scan, fix, and v
    # Database
    DATABASE_URL="file:./dev.db"
    
-   # AI API
-   GROK_API_KEY="your-grok-api-key-here"
+   # AI API (Google Gemini)
+   GEMINI_API_KEY="your-gemini-api-key-here"
+   # Get your API key from: https://aistudio.google.com/app/apikey
    
    # Shopify Configuration
    SHOPIFY_STORE_URL="your-shopify-store.myshopify.com"
@@ -131,10 +132,14 @@ An AI-powered assistant that connects to Shopify & WordPress to scan, fix, and v
    - Generate a new password
 3. Add credentials to your `.env.local`
 
-### Grok API Setup
-1. Sign up for Grok API access
-2. Get your API key from the dashboard
-3. Add to your `.env.local`
+### Google Gemini API Setup
+1. Go to [Google AI Studio](https://aistudio.google.com/app/apikey)
+2. Sign in with your Google account
+3. Click "Create API Key"
+4. Copy the API key
+5. Add to your `.env.local` as `GEMINI_API_KEY`
+
+**Note:** The application uses Google Gemini API for chat features. Grok API integration exists but is not currently used in the main chat endpoint.
 
 ## Project Structure
 
@@ -276,7 +281,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 ## Acknowledgments
 
 - Built with [Next.js](https://nextjs.org/)
-- AI powered by [Grok](https://grok.x.ai/)
+- AI powered by [Google Gemini](https://aistudio.google.com/)
 - UI components with [Tailwind CSS](https://tailwindcss.com/)
 - State management with [Zustand](https://zustand-demo.pmnd.rs/)
 - Database with [Prisma](https://www.prisma.io/)

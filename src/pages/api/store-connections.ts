@@ -5,27 +5,46 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   if (req.method === 'POST') {
     // Store a new connection
     try {
-      const { userId, type, url, accessToken } = req.body
+      const { userId, type, url, accessToken, username, appPassword } = req.body
 
-      if (!userId || !type || !url || !accessToken) {
-        return res.status(400).json({ error: 'Missing required fields' })
+      if (!userId || !type || !url) {
+        return res.status(400).json({ error: 'Missing required fields: userId, type, and url are required' })
+      }
+
+      // Validate based on store type
+      if (type === 'shopify' && !accessToken) {
+        return res.status(400).json({ error: 'Access token is required for Shopify connections' })
+      }
+
+      if (type === 'wordpress' && (!username || !appPassword)) {
+        return res.status(400).json({ error: 'Username and app password are required for WordPress connections' })
+      }
+
+      // Prepare connection data
+      const connectionData: any = {
+        user_id: userId,
+        type,
+        url,
+        is_connected: true,
+      }
+
+      // Add credentials based on type
+      if (type === 'shopify') {
+        connectionData.access_token = accessToken
+      } else if (type === 'wordpress') {
+        connectionData.username = username
+        connectionData.app_password = appPassword
       }
 
       const { data, error } = await supabase
         .from('store_connections')
-        .insert({
-          user_id: userId,
-          type,
-          url,
-          access_token: accessToken,
-          is_connected: true,
-        })
+        .insert(connectionData)
         .select()
         .single()
 
       if (error) {
         console.error('Error storing connection:', error)
-        return res.status(500).json({ error: 'Failed to store connection' })
+        return res.status(500).json({ error: 'Failed to store connection', details: error.message })
       }
 
       res.status(201).json({ connection: data })

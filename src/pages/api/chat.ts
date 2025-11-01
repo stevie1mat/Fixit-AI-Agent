@@ -251,8 +251,9 @@ Respond with ONLY this JSON (no markdown, no extra text):
 {"action":"list_posts"|"list_plugins"|"update_post"|"scan_wordpress"|"get_info"|null,"reasoning":"brief explanation","needsExecution":true|false,"postId":number|null,"postTitle":string|null,"confidence":"high"|"medium"|"low"}
 
 Examples:
-- "check posts" → {"action":"list_posts","reasoning":"User wants to see posts","needsExecution":true,"postId":null,"postTitle":null,"confidence":"high"}
-- "list plugins" → {"action":"list_plugins","reasoning":"User wants plugin list","needsExecution":true,"postId":null,"postTitle":null,"confidence":"high"}`
+- "check posts" or "how many posts" → {"action":"get_info","reasoning":"User wants post count","needsExecution":true,"postId":null,"postTitle":null,"confidence":"high"}
+- "list plugins" → {"action":"list_plugins","reasoning":"User wants plugin list","needsExecution":true,"postId":null,"postTitle":null,"confidence":"high"}
+- "show all posts" → {"action":"list_posts","reasoning":"User wants to see all posts","needsExecution":true,"postId":null,"postTitle":null,"confidence":"high"}`
 
       console.log('🔍 AI UNDERSTANDING - Sending request to Gemini...')
       console.log('📝 User message:', message)
@@ -362,12 +363,52 @@ Examples:
       
       // Execute action if Gemini determined one is needed
       let actionResult = ''
+      
+      // Check if we have a connection (from database or frontend)
+      if (!connection && grokUnderstanding.needsExecution && grokUnderstanding.action) {
+        // Try to get connection from database again if userId exists
+        if (userId) {
+          console.log('⚠️ No connection found, trying to fetch from database for userId:', userId)
+          try {
+            const { data: dbConnections } = await supabase
+              .from('store_connections')
+              .select('*')
+              .eq('user_id', userId)
+              .eq('is_connected', true)
+              .order('created_at', { ascending: false })
+              .limit(1)
+            
+            if (dbConnections && dbConnections.length > 0) {
+              connection = dbConnections[0]
+              storeType = connection.type as 'shopify' | 'wordpress'
+              console.log('✅ Found connection from database:', connection.url)
+            }
+          } catch (dbError) {
+            console.error('Error fetching connection from database:', dbError)
+          }
+        }
+      }
+      
+      // If action needs execution but no connection, provide helpful message
+      if (grokUnderstanding.needsExecution && grokUnderstanding.action && !connection) {
+        if (grokUnderstanding.action === 'get_info' || grokUnderstanding.action === 'list_posts' || grokUnderstanding.action === 'scan_wordpress') {
+          actionResult = `❌ **No WordPress connection found.**\n\nTo get exact values, please:\n1. Go to Settings/Connections in the app\n2. Connect your WordPress site\n3. Make sure your username and application password are configured\n\nOnce connected, I can fetch exact post counts and other information directly from your site.`
+        }
+      }
+      
       if (grokUnderstanding.needsExecution && grokUnderstanding.action && connection && storeType === 'wordpress') {
         console.log('⚡ EXECUTING ACTION:', grokUnderstanding.action)
         
-        const username = connection.username || (connection as any).username
-        const appPassword = connection.app_password || connection.appPassword || (connection as any).appPassword
+        const username = connection.username || (connection as any).username || connection.user_name
+        const appPassword = connection.app_password || connection.appPassword || (connection as any).appPassword || connection.app_password
         const storeUrl = connection.url
+        
+        console.log('🔑 WordPress credentials check:', { 
+          hasUsername: !!username, 
+          hasAppPassword: !!appPassword, 
+          hasUrl: !!storeUrl,
+          connectionKeys: Object.keys(connection)
+        })
         
         if (username && appPassword && storeUrl) {
           try {

@@ -131,7 +131,8 @@ export default function SettingsPage() {
                 userId: user.id,
                 type: 'wordpress',
                 url: wordpressForm.baseUrl,
-                accessToken: wordpressForm.appPassword,
+                username: wordpressForm.username,
+                appPassword: wordpressForm.appPassword,
               }),
             })
           } catch (error) {

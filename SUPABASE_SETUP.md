@@ -50,7 +50,9 @@ CREATE TABLE public.store_connections (
   user_id UUID REFERENCES public.users(id) ON DELETE CASCADE NOT NULL,
   type TEXT CHECK (type IN ('shopify', 'wordpress')) NOT NULL,
   url TEXT NOT NULL,
-  access_token TEXT NOT NULL,
+  access_token TEXT, -- For Shopify (nullable, WordPress doesn't use this)
+  username TEXT, -- For WordPress (nullable, Shopify doesn't use this)
+  app_password TEXT, -- For WordPress (nullable, Shopify doesn't use this)
   is_connected BOOLEAN DEFAULT true,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
